@@ -1,1 +1,1 @@
-web: java -jar build/libs/udehnih-review-rating-0.0.1-SNAPSHOT.jar --server.port=$SERVER_PORT
+web: java -jar build/libs/udehnih-review-rating-0.0.1-SNAPSHOT.jar --spring.profiles.active=staging
