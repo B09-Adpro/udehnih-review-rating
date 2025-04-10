@@ -1,10 +1,10 @@
-name: Java CI/CD with AWS Deployment
+name: Java CD with Staging Deployment
 
 on:
   push:
-    branches: [ main ]
+    branches: [ staging ]
   pull_request:
-    branches: [ main ]
+    branches: [ staging ]
 
 jobs:
   build:
@@ -48,7 +48,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
@@ -74,14 +74,15 @@ jobs:
           echo "option_settings:" > .ebextensions/env.config
           echo "  aws:elasticbeanstalk:application:environment:" >> .ebextensions/env.config
           echo "    SERVER_PORT: 5000" >> .ebextensions/env.config
+          echo "    SPRING_PROFILES_ACTIVE: staging" >> .ebextensions/env.config
           echo "web: java -jar build/libs/udehnih-review-rating-0.0.1-SNAPSHOT.jar" > Procfile
-          zip -r deploy.zip build/libs/udehnih-auth-0.0.1-SNAPSHOT.jar Procfile .ebextensions/
+          zip -r deploy.zip build/libs/udehnih-review-rating-0.0.1-SNAPSHOT.jar Procfile .ebextensions/
 
       - name: Generate unique version label
         id: version
-        run: echo "version_label=ver-$(date +%Y%m%d%H%M%S)-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+        run: echo "version_label=staging-$(date +%Y%m%d%H%M%S)-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Deploy to Elastic Beanstalk
+      - name: Deploy to Elastic Beanstalk Staging
         run: |
           aws s3 cp deploy.zip s3://${{ secrets.AWS_S3_BUCKET }}/deploy-${{ steps.version.outputs.version_label }}.zip
           aws elasticbeanstalk create-application-version \
@@ -89,5 +90,5 @@ jobs:
             --version-label "${{ steps.version.outputs.version_label }}" \
             --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET }}",S3Key="deploy-${{ steps.version.outputs.version_label }}.zip"
           aws elasticbeanstalk update-environment \
-            --environment-name ${{ secrets.EB_ENVIRONMENT_NAME }} \
+            --environment-name ${{ secrets.EB_STAGING_ENVIRONMENT_NAME }} \
             --version-label "${{ steps.version.outputs.version_label }}"
