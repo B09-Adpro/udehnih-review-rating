@@ -1,4 +1,4 @@
-name: Java CD with Staging Deployment
+name: Java CI/CD with Staging Deployment
 
 on:
   push:
@@ -35,10 +35,12 @@ jobs:
 
       - name: SonarCloud Scan
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -78,17 +80,21 @@ jobs:
           echo "web: java -jar build/libs/udehnih-review-rating-0.0.1-SNAPSHOT.jar" > Procfile
           zip -r deploy.zip build/libs/udehnih-review-rating-0.0.1-SNAPSHOT.jar Procfile .ebextensions/
 
-      - name: Generate unique version label
-        id: version
-        run: echo "version_label=staging-$(date +%Y%m%d%H%M%S)-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      - name: Generate timestamp for unique version label
+        id: timestamp
+        run: echo "timestamp=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
       - name: Deploy to Elastic Beanstalk Staging
         run: |
-          aws s3 cp deploy.zip s3://${{ secrets.AWS_S3_BUCKET }}/deploy-${{ steps.version.outputs.version_label }}.zip
+          VERSION_LABEL="ver-${{ steps.timestamp.outputs.timestamp }}-${GITHUB_SHA::7}"
+          
+          aws s3 cp deploy.zip "s3://${{ secrets.AWS_S3_BUCKET }}/deploy-${VERSION_LABEL}.zip"
+          
           aws elasticbeanstalk create-application-version \
-            --application-name ${{ secrets.EB_APPLICATION_NAME }} \
-            --version-label "${{ steps.version.outputs.version_label }}" \
-            --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET }}",S3Key="deploy-${{ steps.version.outputs.version_label }}.zip"
+            --application-name "${{ secrets.EB_APPLICATION_NAME }}" \
+            --version-label "${VERSION_LABEL}" \
+            --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET }}",S3Key="deploy-${VERSION_LABEL}.zip"
+          
           aws elasticbeanstalk update-environment \
-            --environment-name ${{ secrets.EB_STAGING_ENVIRONMENT_NAME }} \
-            --version-label "${{ steps.version.outputs.version_label }}"
+            --environment-name "${{ secrets.EB_STAGING_ENVIRONMENT_NAME }}" \
+            --version-label "${VERSION_LABEL}"
