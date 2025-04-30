@@ -19,7 +19,7 @@ public class Review {
     @Id
     @EqualsAndHashCode.Include
     private UUID id;
-    private String courseId;
+    private Long courseId;
     private String studentId;
     private String reviewText;
     private int rating;
