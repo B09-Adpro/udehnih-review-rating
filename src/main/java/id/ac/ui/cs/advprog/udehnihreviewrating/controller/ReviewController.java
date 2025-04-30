@@ -3,10 +3,12 @@ package id.ac.ui.cs.advprog.udehnihreviewrating.controller;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.CreateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.UpdateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
+import id.ac.ui.cs.advprog.udehnihreviewrating.security.StudentDetails;
 import id.ac.ui.cs.advprog.udehnihreviewrating.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +27,9 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ReviewResponse> createReview(
-            @RequestHeader("Student-ID") String studentId,
+            @AuthenticationPrincipal StudentDetails studentDetails,
             @RequestBody CreateReviewRequest request) {
+        String studentId = studentDetails.getId();
         ReviewResponse response = reviewService.createReview(studentId, request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -52,8 +55,9 @@ public class ReviewController {
     @PutMapping("/{reviewId}")
     public ResponseEntity<ReviewResponse> updateReview(
             @PathVariable UUID reviewId,
-            @RequestHeader("Student-ID") String studentId,
+            @AuthenticationPrincipal StudentDetails studentDetails,
             @RequestBody UpdateReviewRequest request) {
+        String studentId = studentDetails.getId();
         ReviewResponse response = reviewService.updateReview(reviewId, studentId, request);
         return ResponseEntity.ok(response);
     }
@@ -61,7 +65,8 @@ public class ReviewController {
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Boolean> deleteReview(
             @PathVariable UUID reviewId,
-            @RequestHeader("Student-ID") String studentId) {
+            @AuthenticationPrincipal StudentDetails studentDetails) {
+        String studentId = studentDetails.getId();
         boolean deleted = reviewService.deleteReview(reviewId, studentId);
         return ResponseEntity.ok(deleted);
     }
