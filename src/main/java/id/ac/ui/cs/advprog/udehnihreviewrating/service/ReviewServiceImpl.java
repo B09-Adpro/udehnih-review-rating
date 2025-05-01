@@ -1,12 +1,14 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.service;
 
+import id.ac.ui.cs.advprog.udehnihreviewrating.client.CourseClient;
+import id.ac.ui.cs.advprog.udehnihreviewrating.dto.course.CourseDetailDTO;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.CreateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.UpdateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
 import id.ac.ui.cs.advprog.udehnihreviewrating.factory.ReviewFactory;
 import id.ac.ui.cs.advprog.udehnihreviewrating.model.Review;
 import id.ac.ui.cs.advprog.udehnihreviewrating.repository.ReviewRepository;
-import id.ac.ui.cs.advprog.udehnihreviewrating.service.ReviewService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +18,18 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ReviewFactory reviewFactory;
+    private final CourseClient courseClient;
 
     @Autowired
-    public ReviewServiceImpl(ReviewRepository reviewRepository, ReviewFactory reviewFactory) {
+    public ReviewServiceImpl(ReviewRepository reviewRepository, ReviewFactory reviewFactory, CourseClient courseClient) {
         this.reviewRepository = reviewRepository;
         this.reviewFactory = reviewFactory;
+        this.courseClient = courseClient;
     }
 
     @Override
@@ -68,7 +73,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<ReviewResponse> getReviewsByCourse(String courseId) {
+    public List<ReviewResponse> getReviewsByCourse(Long courseId) {
         List<Review> reviews = reviewRepository.findByCourseId(courseId);
 
         return reviews.stream()
@@ -118,7 +123,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public double getAverageRatingForCourse(String courseId) {
+    public double getAverageRatingForCourse(Long courseId) {
         List<Review> courseReviews = reviewRepository.findByCourseId(courseId);
 
         if (courseReviews.isEmpty()) {
@@ -136,12 +141,25 @@ public class ReviewServiceImpl implements ReviewService {
     private ReviewResponse convertToResponse(Review review) {
         boolean isAnonymous = "anonymous".equals(review.getStudentId());
 
+        String courseName = "Course Name";
+        String tutorName = "Tutor Name";
+
+        try {
+            CourseDetailDTO courseDetail = courseClient.getCourseById(review.getCourseId());
+            if (courseDetail != null) {
+                courseName = courseDetail.getTitle();
+                tutorName = courseDetail.getTutorName();
+            }
+        } catch (Exception e) {
+            log.error("Error fetching course details: {}", e.getMessage());
+        }
+
         return ReviewResponse.builder()
                 .id(review.getId())
-                .courseId(review.getCourseId())
-                .courseName("Course Name") // Akan di-fetch dari course service
+                .courseId(review.getCourseId().toString())
+                .courseName(courseName)
                 .studentId(isAnonymous ? null : review.getStudentId())
-                .studentName(isAnonymous ? "Anonymous" : "Student Name") // Akan di-fetch dari student service
+                .studentName(isAnonymous ? "Anonymous" : "Student Name")
                 .reviewText(review.getReviewText())
                 .rating(review.getRating())
                 .createdAt(review.getCreatedAt())
