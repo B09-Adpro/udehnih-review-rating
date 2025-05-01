@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
-    List<Review> findByCourseId(String courseId);
+    List<Review> findByCourseId(Long courseId);
     List<Review> findByStudentId(String studentId);
-    Review findByCourseIdAndStudentId(String courseId, String studentId);
+    Review findByCourseIdAndStudentId(Long courseId, String studentId);
 }
