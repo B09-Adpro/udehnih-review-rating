@@ -10,9 +10,9 @@ import java.util.UUID;
 public interface ReviewService {
     ReviewResponse createReview(String studentId, CreateReviewRequest request);
     ReviewResponse getReviewById(UUID reviewId);
-    List<ReviewResponse> getReviewsByCourse(String courseId);
+    List<ReviewResponse> getReviewsByCourse(Long courseId);
     List<ReviewResponse> getReviewsByStudent(String studentId);
     ReviewResponse updateReview(UUID reviewId, String studentId, UpdateReviewRequest request);
     boolean deleteReview(UUID reviewId, String studentId);
-    double getAverageRatingForCourse(String courseId);
+    double getAverageRatingForCourse(Long courseId);
 }
