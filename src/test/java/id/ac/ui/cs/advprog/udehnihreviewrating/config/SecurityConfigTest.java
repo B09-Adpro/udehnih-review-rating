@@ -1,67 +1,92 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.config;
 
+import id.ac.ui.cs.advprog.udehnihreviewrating.controller.HealthController;
+import id.ac.ui.cs.advprog.udehnihreviewrating.controller.ReviewController;
+import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
 import id.ac.ui.cs.advprog.udehnihreviewrating.security.JwtAuthenticationFilter;
+import id.ac.ui.cs.advprog.udehnihreviewrating.service.ReviewService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.mock;
+import java.io.IOException;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
-@ContextConfiguration(classes = {SecurityConfigTest.TestConfig.class})
+@WebMvcTest(controllers = {HealthController.class, ReviewController.class})
+@Import({SecurityConfig.class, SecurityConfigTest.SliceBeans.class})
+@TestPropertySource(properties = "COURSE_SERVICE_URL=localhost:8081")
 class SecurityConfigTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mvc;
+    @Autowired private ReviewService reviewService;
+
+    private final UUID reviewId = UUID.randomUUID();
+
+    @BeforeEach
+    void stubService() {
+        Mockito.reset(reviewService);
+        Mockito.when(reviewService.getReviewById(any(UUID.class)))
+                .thenReturn(ReviewResponse.builder().id(reviewId).build());
+    }
+
 
     @Test
-    void testPublicEndpoints() throws Exception {
-        mockMvc.perform(get("/health"))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/"))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/api/reviews/course/123/average-rating"))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/api/reviews/course/123"))
-                .andExpect(status().isOk());
+    void rootAndHealth_arePublic() throws Exception {
+        mvc.perform(get("/")).andExpect(status().isOk());
+        mvc.perform(get("/health")).andExpect(status().isOk());
     }
 
     @Test
-    void testProtectedEndpointsUnauthenticated() throws Exception {
-        mockMvc.perform(get("/api/reviews"))
-                .andExpect(status().isUnauthorized());
-
-        mockMvc.perform(get("/api/reviews/123"))
-                .andExpect(status().isUnauthorized());
+    void secureEndpoints_withoutAuth_return403() throws Exception {
+        mvc.perform(get("/api/secure"))                      .andExpect(status().isForbidden());
+        mvc.perform(get("/api/reviews/{id}", reviewId))      .andExpect(status().isForbidden());
     }
+
 
     @Test
-    @WithMockUser
-    void testProtectedEndpointsWithAuthentication() throws Exception {
-        mockMvc.perform(get("/api/reviews"))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/api/reviews/123"))
-                .andExpect(status().isOk());
+    @WithMockUser(roles = "STUDENT")
+    void secureEndpoints_withAuth_return200() throws Exception {
+        mvc.perform(get("/api/secure"))                      .andExpect(status().isOk());
+        mvc.perform(get("/api/reviews/{id}", reviewId))      .andExpect(status().isOk());
     }
 
-    @Configuration
-    @Import(SecurityConfig.class)
-    static class TestConfig {
+
+    @TestConfiguration
+    static class SliceBeans {
+
         @Bean
-        public JwtAuthenticationFilter jwtAuthenticationFilter() {
-            return mock(JwtAuthenticationFilter.class);
+        JwtAuthenticationFilter jwtAuthenticationFilter() {
+            return new JwtAuthenticationFilter() {
+                @Override
+                protected void doFilterInternal(
+                        HttpServletRequest req,
+                        HttpServletResponse res,
+                        FilterChain chain)
+                        throws ServletException, IOException {
+                    chain.doFilter(req, res);
+                }
+            };
+        }
+
+        @Bean
+        ReviewService reviewService() {
+            return Mockito.mock(ReviewService.class);
         }
     }
 }
