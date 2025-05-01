@@ -12,7 +12,7 @@ class ReviewTest {
     @Test
     void testReviewBuilder() {
         UUID id = UUID.randomUUID();
-        String courseId = "COURSE-123";
+        Long courseId = 123L;
         String studentId = "STUDENT-456";
         String reviewText = "This is a great course!";
         int rating = 5;
@@ -54,7 +54,7 @@ class ReviewTest {
     @Test
     void testReviewAllArgsConstructor() {
         UUID id = UUID.randomUUID();
-        String courseId = "COURSE-123";
+        Long courseId = 123L;
         String studentId = "STUDENT-456";
         String reviewText = "This is a great course!";
         int rating = 5;
@@ -76,7 +76,7 @@ class ReviewTest {
     void testReviewSettersAndGetters() {
         Review review = new Review();
         UUID id = UUID.randomUUID();
-        String courseId = "COURSE-123";
+        Long courseId = 123L;
         String studentId = "STUDENT-456";
         String reviewText = "This is a great course!";
         int rating = 5;
@@ -106,7 +106,7 @@ class ReviewTest {
 
         Review review1 = Review.builder()
                 .id(id)
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .studentId("STUDENT-456")
                 .reviewText("This is a great course!")
                 .rating(5)
@@ -116,7 +116,7 @@ class ReviewTest {
 
         Review review2 = Review.builder()
                 .id(id)
-                .courseId("COURSE-789")
+                .courseId(789L)
                 .studentId("STUDENT-999")
                 .reviewText("Different text")
                 .rating(3)
@@ -126,7 +126,7 @@ class ReviewTest {
 
         Review review3 = Review.builder()
                 .id(UUID.randomUUID())
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .studentId("STUDENT-456")
                 .reviewText("This is a great course!")
                 .rating(5)
@@ -151,7 +151,7 @@ class ReviewTest {
 
         Review review = Review.builder()
                 .id(id)
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .studentId("STUDENT-456")
                 .reviewText("This is a great course!")
                 .rating(5)
@@ -162,7 +162,7 @@ class ReviewTest {
         String toString = review.toString();
 
         assertTrue(toString.contains(id.toString()));
-        assertTrue(toString.contains("COURSE-123"));
+        assertTrue(toString.contains("123"));
         assertTrue(toString.contains("STUDENT-456"));
         assertTrue(toString.contains("This is a great course!"));
         assertTrue(toString.contains("5"));
