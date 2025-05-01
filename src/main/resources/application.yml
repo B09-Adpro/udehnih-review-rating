@@ -18,6 +18,9 @@ spring:
 server:
   port: ${SERVER_PORT:5000}
 
+course-service:
+  url: ${COURSE_SERVICE_URL}
+
 logging:
   level:
     org.springframework.security: ${LOG_SECURITY_LEVEL:INFO}
