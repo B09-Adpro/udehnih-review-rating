@@ -31,7 +31,7 @@ class ReviewRepositoryTest {
 
         Review review = Review.builder()
                 .id(id)
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .studentId("STUDENT-456")
                 .reviewText("Great course!")
                 .rating(5)
@@ -46,7 +46,7 @@ class ReviewRepositoryTest {
 
         assertTrue(foundReview.isPresent());
         assertEquals(id, foundReview.get().getId());
-        assertEquals("COURSE-123", foundReview.get().getCourseId());
+        assertEquals(123L, foundReview.get().getCourseId());
         assertEquals("STUDENT-456", foundReview.get().getStudentId());
         assertEquals("Great course!", foundReview.get().getReviewText());
         assertEquals(5, foundReview.get().getRating());
@@ -61,7 +61,7 @@ class ReviewRepositoryTest {
 
     @Test
     void findByCourseId_ExistingCourse_ShouldReturnReviews() {
-        String courseId = "COURSE-123";
+        Long courseId = 123L;
         LocalDateTime now = LocalDateTime.now();
 
         Review review1 = Review.builder()
@@ -86,7 +86,7 @@ class ReviewRepositoryTest {
 
         Review otherCourseReview = Review.builder()
                 .id(UUID.randomUUID())
-                .courseId("OTHER-COURSE")
+                .courseId(456L)
                 .studentId("STUDENT-3")
                 .reviewText("Other course review")
                 .rating(3)
@@ -109,7 +109,7 @@ class ReviewRepositoryTest {
 
     @Test
     void findByCourseId_NonExistingCourse_ShouldReturnEmptyList() {
-        List<Review> courseReviews = reviewRepository.findByCourseId("NON-EXISTING-COURSE");
+        List<Review> courseReviews = reviewRepository.findByCourseId(999L);
 
         assertTrue(courseReviews.isEmpty());
     }
@@ -121,7 +121,7 @@ class ReviewRepositoryTest {
 
         Review review1 = Review.builder()
                 .id(UUID.randomUUID())
-                .courseId("COURSE-1")
+                .courseId(1L)
                 .studentId(studentId)
                 .reviewText("Course 1 review")
                 .rating(4)
@@ -131,7 +131,7 @@ class ReviewRepositoryTest {
 
         Review review2 = Review.builder()
                 .id(UUID.randomUUID())
-                .courseId("COURSE-2")
+                .courseId(2L)
                 .studentId(studentId)
                 .reviewText("Course 2 review")
                 .rating(5)
@@ -141,7 +141,7 @@ class ReviewRepositoryTest {
 
         Review otherStudentReview = Review.builder()
                 .id(UUID.randomUUID())
-                .courseId("COURSE-1")
+                .courseId(1L)
                 .studentId("OTHER-STUDENT")
                 .reviewText("Other student review")
                 .rating(3)
@@ -157,8 +157,8 @@ class ReviewRepositoryTest {
         List<Review> studentReviews = reviewRepository.findByStudentId(studentId);
 
         assertEquals(2, studentReviews.size());
-        assertTrue(studentReviews.stream().anyMatch(r -> r.getCourseId().equals("COURSE-1")));
-        assertTrue(studentReviews.stream().anyMatch(r -> r.getCourseId().equals("COURSE-2")));
+        assertTrue(studentReviews.stream().anyMatch(r -> r.getCourseId().equals(1L)));
+        assertTrue(studentReviews.stream().anyMatch(r -> r.getCourseId().equals(2L)));
         assertFalse(studentReviews.stream().anyMatch(r -> r.getStudentId().equals("OTHER-STUDENT")));
     }
 
@@ -171,7 +171,7 @@ class ReviewRepositoryTest {
 
     @Test
     void findByCourseIdAndStudentId_ExistingReview_ShouldReturnReview() {
-        String courseId = "COURSE-123";
+        Long courseId = 123L;
         String studentId = "STUDENT-456";
         LocalDateTime now = LocalDateTime.now();
 
@@ -197,7 +197,7 @@ class ReviewRepositoryTest {
 
     @Test
     void findByCourseIdAndStudentId_NonExistingCombination_ShouldReturnNull() {
-        Review foundReview = reviewRepository.findByCourseIdAndStudentId("NON-EXISTING-COURSE", "NON-EXISTING-STUDENT");
+        Review foundReview = reviewRepository.findByCourseIdAndStudentId(999L, "NON-EXISTING-STUDENT");
 
         assertNull(foundReview);
     }
@@ -205,7 +205,7 @@ class ReviewRepositoryTest {
     @Test
     void save_NewReview_ShouldPersistAndReturnReview() {
         UUID id = UUID.randomUUID();
-        String courseId = "COURSE-123";
+        Long courseId = 123L;
         String studentId = "STUDENT-456";
         LocalDateTime now = LocalDateTime.now();
 
@@ -236,7 +236,7 @@ class ReviewRepositoryTest {
 
         Review review = Review.builder()
                 .id(id)
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .studentId("STUDENT-456")
                 .reviewText("Review to delete")
                 .rating(3)
