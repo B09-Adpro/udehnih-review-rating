@@ -14,8 +14,7 @@ class DtoTest {
 
     @Test
     void createReviewRequest_BuilderAndGettersSetters() {
-        // Test builder
-        String courseId = "COURSE-123";
+        Long courseId = 123L;
         String reviewText = "Great course!";
         int rating = 5;
         boolean anonymous = true;
@@ -32,14 +31,13 @@ class DtoTest {
         assertEquals(rating, request.getRating());
         assertTrue(request.isAnonymous());
 
-        // Test setters
         CreateReviewRequest request2 = new CreateReviewRequest();
-        request2.setCourseId("COURSE-456");
+        request2.setCourseId(456L);
         request2.setReviewText("Different review");
         request2.setRating(4);
         request2.setAnonymous(false);
 
-        assertEquals("COURSE-456", request2.getCourseId());
+        assertEquals(456L, request2.getCourseId());
         assertEquals("Different review", request2.getReviewText());
         assertEquals(4, request2.getRating());
         assertFalse(request2.isAnonymous());
@@ -47,7 +45,6 @@ class DtoTest {
 
     @Test
     void updateReviewRequest_BuilderAndGettersSetters() {
-        // Test builder
         String reviewText = "Updated review text";
         int rating = 4;
 
@@ -59,7 +56,6 @@ class DtoTest {
         assertEquals(reviewText, request.getReviewText());
         assertEquals(rating, request.getRating());
 
-        // Test setters
         UpdateReviewRequest request2 = new UpdateReviewRequest();
         request2.setReviewText("Different update");
         request2.setRating(3);
@@ -70,9 +66,8 @@ class DtoTest {
 
     @Test
     void reviewResponse_BuilderAndGettersSetters() {
-        // Test builder
         UUID id = UUID.randomUUID();
-        String courseId = "COURSE-123";
+        String courseId = "123";
         String courseName = "Advanced Programming";
         String studentId = "STUDENT-456";
         String studentName = "John Doe";
@@ -106,13 +101,12 @@ class DtoTest {
         assertEquals(updatedAt, response.getUpdatedAt());
         assertFalse(response.isAnonymous());
 
-        // Test setters
         ReviewResponse response2 = new ReviewResponse();
         UUID id2 = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now();
 
         response2.setId(id2);
-        response2.setCourseId("COURSE-456");
+        response2.setCourseId("456");
         response2.setCourseName("Data Structures");
         response2.setStudentId("STUDENT-789");
         response2.setStudentName("Jane Smith");
@@ -123,7 +117,7 @@ class DtoTest {
         response2.setAnonymous(true);
 
         assertEquals(id2, response2.getId());
-        assertEquals("COURSE-456", response2.getCourseId());
+        assertEquals("456", response2.getCourseId());
         assertEquals("Data Structures", response2.getCourseName());
         assertEquals("STUDENT-789", response2.getStudentId());
         assertEquals("Jane Smith", response2.getStudentName());
@@ -171,13 +165,13 @@ class DtoTest {
     @Test
     void createReviewRequest_AllArgsConstructor() {
         CreateReviewRequest request = new CreateReviewRequest(
-                "COURSE-123",
+                123L,
                 "Great course!",
                 5,
                 true
         );
 
-        assertEquals("COURSE-123", request.getCourseId());
+        assertEquals(123L, request.getCourseId());
         assertEquals("Great course!", request.getReviewText());
         assertEquals(5, request.getRating());
         assertTrue(request.isAnonymous());
@@ -201,7 +195,7 @@ class DtoTest {
 
         ReviewResponse response = new ReviewResponse(
                 id,
-                "COURSE-123",
+                "123",
                 "Advanced Programming",
                 "STUDENT-456",
                 "John Doe",
@@ -213,7 +207,7 @@ class DtoTest {
         );
 
         assertEquals(id, response.getId());
-        assertEquals("COURSE-123", response.getCourseId());
+        assertEquals("123", response.getCourseId());
         assertEquals("Advanced Programming", response.getCourseName());
         assertEquals("STUDENT-456", response.getStudentId());
         assertEquals("John Doe", response.getStudentName());
@@ -227,7 +221,7 @@ class DtoTest {
     @Test
     void createReviewRequest_ToString() {
         CreateReviewRequest request = CreateReviewRequest.builder()
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .reviewText("Great course!")
                 .rating(5)
                 .anonymous(true)
@@ -235,7 +229,7 @@ class DtoTest {
 
         String toString = request.toString();
 
-        assertTrue(toString.contains("COURSE-123"));
+        assertTrue(toString.contains("123"));
         assertTrue(toString.contains("Great course!"));
         assertTrue(toString.contains("5"));
         assertTrue(toString.contains("anonymous=true"));
@@ -261,7 +255,7 @@ class DtoTest {
 
         ReviewResponse response = ReviewResponse.builder()
                 .id(id)
-                .courseId("COURSE-123")
+                .courseId("123")
                 .courseName("Advanced Programming")
                 .studentId("STUDENT-456")
                 .studentName("John Doe")
@@ -275,7 +269,7 @@ class DtoTest {
         String toString = response.toString();
 
         assertTrue(toString.contains(id.toString()));
-        assertTrue(toString.contains("COURSE-123"));
+        assertTrue(toString.contains("123"));
         assertTrue(toString.contains("Advanced Programming"));
         assertTrue(toString.contains("STUDENT-456"));
         assertTrue(toString.contains("John Doe"));
@@ -288,31 +282,29 @@ class DtoTest {
     @Test
     void createReviewRequest_EqualsAndHashCode() {
         CreateReviewRequest request1 = CreateReviewRequest.builder()
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .reviewText("Great course!")
                 .rating(5)
                 .anonymous(true)
                 .build();
 
         CreateReviewRequest request2 = CreateReviewRequest.builder()
-                .courseId("COURSE-123")
+                .courseId(123L)
                 .reviewText("Great course!")
                 .rating(5)
                 .anonymous(true)
                 .build();
 
         CreateReviewRequest request3 = CreateReviewRequest.builder()
-                .courseId("DIFFERENT")
+                .courseId(999L)
                 .reviewText("Different text")
                 .rating(3)
                 .anonymous(false)
                 .build();
 
-        // Test equals
         assertEquals(request1, request2);
         assertNotEquals(request1, request3);
 
-        // Test hashCode
         assertEquals(request1.hashCode(), request2.hashCode());
         assertNotEquals(request1.hashCode(), request3.hashCode());
     }
@@ -334,11 +326,9 @@ class DtoTest {
                 .rating(3)
                 .build();
 
-        // Test equals
         assertEquals(request1, request2);
         assertNotEquals(request1, request3);
 
-        // Test hashCode
         assertEquals(request1.hashCode(), request2.hashCode());
         assertNotEquals(request1.hashCode(), request3.hashCode());
     }
@@ -350,7 +340,7 @@ class DtoTest {
 
         ReviewResponse response1 = ReviewResponse.builder()
                 .id(id)
-                .courseId("COURSE-123")
+                .courseId("123")
                 .courseName("Advanced Programming")
                 .studentId("STUDENT-456")
                 .studentName("John Doe")
@@ -363,7 +353,7 @@ class DtoTest {
 
         ReviewResponse response2 = ReviewResponse.builder()
                 .id(id)
-                .courseId("COURSE-123")
+                .courseId("123")
                 .courseName("Advanced Programming")
                 .studentId("STUDENT-456")
                 .studentName("John Doe")
@@ -376,7 +366,7 @@ class DtoTest {
 
         ReviewResponse response3 = ReviewResponse.builder()
                 .id(UUID.randomUUID())
-                .courseId("DIFFERENT")
+                .courseId("999")
                 .courseName("Different")
                 .studentId("DIFFERENT")
                 .studentName("Different")
@@ -387,11 +377,9 @@ class DtoTest {
                 .isAnonymous(true)
                 .build();
 
-        // Test equals
         assertEquals(response1, response2);
         assertNotEquals(response1, response3);
 
-        // Test hashCode
         assertEquals(response1.hashCode(), response2.hashCode());
         assertNotEquals(response1.hashCode(), response3.hashCode());
     }
