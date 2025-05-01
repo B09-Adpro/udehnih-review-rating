@@ -41,7 +41,7 @@ public class ReviewController {
     }
 
     @GetMapping("/course/{courseId}")
-    public ResponseEntity<List<ReviewResponse>> getReviewsByCourse(@PathVariable String courseId) {
+    public ResponseEntity<List<ReviewResponse>> getReviewsByCourse(@PathVariable Long courseId) {
         List<ReviewResponse> responses = reviewService.getReviewsByCourse(courseId);
         return ResponseEntity.ok(responses);
     }
@@ -72,7 +72,7 @@ public class ReviewController {
     }
 
     @GetMapping("/course/{courseId}/average-rating")
-    public ResponseEntity<Double> getAverageRatingForCourse(@PathVariable String courseId) {
+    public ResponseEntity<Double> getAverageRatingForCourse(@PathVariable Long courseId) {
         double averageRating = reviewService.getAverageRatingForCourse(courseId);
         return ResponseEntity.ok(averageRating);
     }
