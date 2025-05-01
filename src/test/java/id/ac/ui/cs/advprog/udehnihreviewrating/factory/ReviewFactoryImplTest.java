@@ -9,13 +9,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReviewFactoryImplTest {
 
     private ReviewFactory reviewFactory;
-    private String courseId;
+    private Long courseId;
     private String studentId;
 
     @BeforeEach
     void setUp() {
         reviewFactory = new ReviewFactoryImpl();
-        courseId = "COURSE-123";
+        courseId = 123L;
         studentId = "STUDENT-456";
     }
 
@@ -113,7 +113,7 @@ class ReviewFactoryImplTest {
         assertNotNull(review);
         assertNotNull(review.getId());
         assertEquals(courseId, review.getCourseId());
-        assertEquals("anonymous", review.getStudentId()); // Should use "anonymous" instead of actual studentId
+        assertEquals("anonymous", review.getStudentId());
         assertEquals(reviewText, review.getReviewText());
         assertEquals(rating, review.getRating());
         assertNotNull(review.getCreatedAt());

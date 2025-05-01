@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.factory;
 
-import id.ac.ui.cs.advprog.udehnihreviewrating.factory.ReviewFactory;
 import id.ac.ui.cs.advprog.udehnihreviewrating.model.Review;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +10,7 @@ import java.util.UUID;
 public class ReviewFactoryImpl implements ReviewFactory {
 
     @Override
-    public Review createBasicReview(String courseId, String studentId, String reviewText, int rating) {
+    public Review createBasicReview(Long courseId, String studentId, String reviewText, int rating) {
         validateRating(rating);
 
         return Review.builder()
@@ -26,7 +25,7 @@ public class ReviewFactoryImpl implements ReviewFactory {
     }
 
     @Override
-    public Review createRatingOnlyReview(String courseId, String studentId, int rating) {
+    public Review createRatingOnlyReview(Long courseId, String studentId, int rating) {
         validateRating(rating);
 
         return Review.builder()
@@ -41,7 +40,7 @@ public class ReviewFactoryImpl implements ReviewFactory {
     }
 
     @Override
-    public Review createDetailedReview(String courseId, String studentId, String reviewText, int rating, boolean isAnonymous) {
+    public Review createDetailedReview(Long courseId, String studentId, String reviewText, int rating, boolean isAnonymous) {
         validateRating(rating);
 
         String actualStudentId = isAnonymous ? "anonymous" : studentId;
