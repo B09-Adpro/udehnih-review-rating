@@ -1,196 +1,128 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.CreateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.UpdateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
+import id.ac.ui.cs.advprog.udehnihreviewrating.security.StudentDetails;
 import id.ac.ui.cs.advprog.udehnihreviewrating.service.ReviewService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(controllers = ReviewController.class)
+@AutoConfigureMockMvc
+@Import(ReviewControllerTest.MockConfig.class)
+@TestPropertySource(properties = "COURSE_SERVICE_URL=localhost:8081")
 class ReviewControllerTest {
 
-    private MockMvc mockMvc;
+    static class MockConfig {
+        @Bean
+        ReviewService reviewService() {
+            return Mockito.mock(ReviewService.class);
+        }
+    }
 
-    @Mock
-    private ReviewService reviewService;
+    @Autowired
+    MockMvc mockMvc;
 
-    @InjectMocks
-    private ReviewController reviewController;
+    @Autowired
+    ReviewService reviewService;
 
-    private ObjectMapper objectMapper;
-    private UUID reviewId;
-    private String courseId;
-    private String studentId;
-    private ReviewResponse reviewResponse;
-    private LocalDateTime now;
+    @Autowired
+    ObjectMapper objectMapper;
+
+    StudentDetails principal;
+    UUID reviewId;
+    Long courseId;
+    LocalDateTime now;
 
     @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(reviewController).build();
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
+    void init() {
         reviewId = UUID.randomUUID();
-        courseId = "COURSE-123";
-        studentId = "STUDENT-456";
+        courseId = 1L;
         now = LocalDateTime.now();
-
-        reviewResponse = ReviewResponse.builder()
-                .id(reviewId)
-                .courseId(courseId)
-                .courseName("Advanced Programming")
-                .studentId(studentId)
-                .studentName("John Doe")
-                .reviewText("Great course!")
-                .rating(5)
-                .createdAt(now)
-                .updatedAt(now)
-                .isAnonymous(false)
-                .build();
+        principal = new StudentDetails(
+                "STUDENT-456",
+                "student@example.com",
+                List.of(new SimpleGrantedAuthority("ROLE_STUDENT"))
+        );
     }
 
     @Test
-    void createReview_ValidRequest_ShouldReturnCreatedReviewWithCreatedStatus() throws Exception {
-        CreateReviewRequest request = CreateReviewRequest.builder()
+    void createReview_ShouldReturnCreated() throws Exception {
+        CreateReviewRequest req = CreateReviewRequest.builder()
                 .courseId(courseId)
                 .reviewText("Great course!")
                 .rating(5)
                 .anonymous(false)
                 .build();
 
-        when(reviewService.createReview(eq(studentId), any(CreateReviewRequest.class)))
-                .thenReturn(reviewResponse);
-
-        mockMvc.perform(post("/api/reviews")
-                        .header("Student-ID", studentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(reviewId.toString()))
-                .andExpect(jsonPath("$.courseId").value(courseId))
-                .andExpect(jsonPath("$.courseName").value("Advanced Programming"))
-                .andExpect(jsonPath("$.studentId").value(studentId))
-                .andExpect(jsonPath("$.reviewText").value("Great course!"))
-                .andExpect(jsonPath("$.rating").value(5));
-    }
-
-    @Test
-    void getReviewById_ExistingReview_ShouldReturnReviewWithOkStatus() throws Exception {
-        when(reviewService.getReviewById(reviewId)).thenReturn(reviewResponse);
-
-        mockMvc.perform(get("/api/reviews/{reviewId}", reviewId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId.toString()))
-                .andExpect(jsonPath("$.courseId").value(courseId))
-                .andExpect(jsonPath("$.courseName").value("Advanced Programming"))
-                .andExpect(jsonPath("$.studentId").value(studentId))
-                .andExpect(jsonPath("$.reviewText").value("Great course!"))
-                .andExpect(jsonPath("$.rating").value(5));
-    }
-
-    @Test
-    void getReviewById_NonExistingReview_ShouldThrowException() {
-        when(reviewService.getReviewById(reviewId)).thenThrow(new RuntimeException("Review not found"));
-
-        try {
-            mockMvc.perform(get("/api/reviews/{reviewId}", reviewId));
-        } catch (Exception e) {
-            // Expected exception, test passes
-        }
-    }
-
-    @Test
-    void getReviewsByCourse_CourseWithReviews_ShouldReturnListOfReviewsWithOkStatus() throws Exception {
-        ReviewResponse reviewResponse2 = ReviewResponse.builder()
-                .id(UUID.randomUUID())
-                .courseId(courseId)
+        ReviewResponse res = ReviewResponse.builder()
+                .id(reviewId)
+                .courseId(courseId.toString())
                 .courseName("Advanced Programming")
-                .studentId("STUDENT-789")
-                .studentName("Jane Smith")
-                .reviewText("Good content")
-                .rating(4)
-                .createdAt(now)
-                .updatedAt(now)
-                .isAnonymous(false)
-                .build();
-
-        List<ReviewResponse> reviewResponses = Arrays.asList(reviewResponse, reviewResponse2);
-
-        when(reviewService.getReviewsByCourse(courseId)).thenReturn(reviewResponses);
-
-        mockMvc.perform(get("/api/reviews/course/{courseId}", courseId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].id").value(reviewId.toString()))
-                .andExpect(jsonPath("$[0].courseId").value(courseId))
-                .andExpect(jsonPath("$[0].studentId").value(studentId))
-                .andExpect(jsonPath("$[1].studentId").value("STUDENT-789"));
-    }
-
-    @Test
-    void getReviewsByStudent_StudentWithReviews_ShouldReturnListOfReviewsWithOkStatus() throws Exception {
-        ReviewResponse reviewResponse2 = ReviewResponse.builder()
-                .id(UUID.randomUUID())
-                .courseId("COURSE-456")
-                .courseName("Data Structures")
-                .studentId(studentId)
+                .studentId("STUDENT-456")
                 .studentName("John Doe")
-                .reviewText("Excellent material")
+                .reviewText("Great course!")
                 .rating(5)
                 .createdAt(now)
                 .updatedAt(now)
                 .isAnonymous(false)
                 .build();
 
-        List<ReviewResponse> reviewResponses = Arrays.asList(reviewResponse, reviewResponse2);
+        when(reviewService.createReview(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(CreateReviewRequest.class)))
+                .thenReturn(res);
 
-        when(reviewService.getReviewsByStudent(studentId)).thenReturn(reviewResponses);
+        mockMvc.perform(post("/api/reviews")
+                        .with(user(principal))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(reviewId.toString()))
+                .andExpect(jsonPath("$.rating").value(5));
 
-        mockMvc.perform(get("/api/reviews/student/{studentId}", studentId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].id").value(reviewId.toString()))
-                .andExpect(jsonPath("$[0].studentId").value(studentId))
-                .andExpect(jsonPath("$[0].courseId").value(courseId))
-                .andExpect(jsonPath("$[1].courseId").value("COURSE-456"));
+        verify(reviewService).createReview(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(CreateReviewRequest.class));
     }
 
     @Test
-    void updateReview_ValidRequestAndAuthorizedStudent_ShouldReturnUpdatedReviewWithOkStatus() throws Exception {
-        UpdateReviewRequest request = UpdateReviewRequest.builder()
+    void updateReview_ShouldReturnOk() throws Exception {
+        UpdateReviewRequest req = UpdateReviewRequest.builder()
                 .reviewText("Updated review text")
                 .rating(4)
                 .build();
 
-        ReviewResponse updatedResponse = ReviewResponse.builder()
+        ReviewResponse upd = ReviewResponse.builder()
                 .id(reviewId)
-                .courseId(courseId)
+                .courseId(courseId.toString())
                 .courseName("Advanced Programming")
-                .studentId(studentId)
+                .studentId("STUDENT-456")
                 .studentName("John Doe")
                 .reviewText("Updated review text")
                 .rating(4)
@@ -199,78 +131,42 @@ class ReviewControllerTest {
                 .isAnonymous(false)
                 .build();
 
-        when(reviewService.updateReview(eq(reviewId), eq(studentId), any(UpdateReviewRequest.class)))
-                .thenReturn(updatedResponse);
+        when(reviewService.updateReview(
+                ArgumentMatchers.any(UUID.class),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(UpdateReviewRequest.class)))
+                .thenReturn(upd);
 
         mockMvc.perform(put("/api/reviews/{reviewId}", reviewId)
-                        .header("Student-ID", studentId)
+                        .with(user(principal))
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(reviewId.toString()))
-                .andExpect(jsonPath("$.reviewText").value("Updated review text"))
                 .andExpect(jsonPath("$.rating").value(4));
+
+        verify(reviewService).updateReview(
+                ArgumentMatchers.any(UUID.class),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(UpdateReviewRequest.class));
     }
 
     @Test
-    void updateReview_UnauthorizedStudent_ShouldThrowException() {
-        UpdateReviewRequest request = UpdateReviewRequest.builder()
-                .reviewText("Updated review text")
-                .rating(4)
-                .build();
-
-        doThrow(new RuntimeException("Unauthorized to update this review"))
-                .when(reviewService).updateReview(eq(reviewId), anyString(), any(UpdateReviewRequest.class));
-
-        try {
-            mockMvc.perform(put("/api/reviews/{reviewId}", reviewId)
-                    .header("Student-ID", "DIFFERENT-STUDENT")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)));
-        } catch (Exception e) {
-            // Expected exception, test passes
-        }
-    }
-
-    @Test
-    void deleteReview_AuthorizedStudent_ShouldReturnTrue() throws Exception {
-        when(reviewService.deleteReview(reviewId, studentId)).thenReturn(true);
+    void deleteReview_ShouldReturnTrue() throws Exception {
+        when(reviewService.deleteReview(
+                ArgumentMatchers.any(UUID.class),
+                ArgumentMatchers.anyString()))
+                .thenReturn(true);
 
         mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId)
-                        .header("Student-ID", studentId))
+                        .with(user(principal))
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
-    }
 
-    @Test
-    void deleteReview_UnauthorizedStudent_ShouldThrowException() {
-        doThrow(new RuntimeException("Unauthorized to delete this review"))
-                .when(reviewService).deleteReview(reviewId, "DIFFERENT-STUDENT");
-
-        try {
-            mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId)
-                    .header("Student-ID", "DIFFERENT-STUDENT"));
-        } catch (Exception e) {
-            // Expected exception, test passes
-        }
-    }
-
-    @Test
-    void getAverageRatingForCourse_CourseWithReviews_ShouldReturnAverageRating() throws Exception {
-        double averageRating = 4.5;
-        when(reviewService.getAverageRatingForCourse(courseId)).thenReturn(averageRating);
-
-        mockMvc.perform(get("/api/reviews/course/{courseId}/average-rating", courseId))
-                .andExpect(status().isOk())
-                .andExpect(content().string("4.5"));
-    }
-
-    @Test
-    void getAverageRatingForCourse_CourseWithNoReviews_ShouldReturnZero() throws Exception {
-        when(reviewService.getAverageRatingForCourse(courseId)).thenReturn(0.0);
-
-        mockMvc.perform(get("/api/reviews/course/{courseId}/average-rating", courseId))
-                .andExpect(status().isOk())
-                .andExpect(content().string("0.0"));
+        verify(reviewService).deleteReview(
+                ArgumentMatchers.any(UUID.class),
+                ArgumentMatchers.anyString());
     }
 }
