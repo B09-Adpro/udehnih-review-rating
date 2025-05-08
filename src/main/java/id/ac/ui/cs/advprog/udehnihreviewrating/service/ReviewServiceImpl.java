@@ -1,10 +1,12 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.service;
 
 import id.ac.ui.cs.advprog.udehnihreviewrating.client.CourseClient;
+import id.ac.ui.cs.advprog.udehnihreviewrating.client.StudentClient;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.course.CourseDetailDTO;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.CreateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.UpdateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
+import id.ac.ui.cs.advprog.udehnihreviewrating.dto.student.StudentDTO;
 import id.ac.ui.cs.advprog.udehnihreviewrating.factory.ReviewFactory;
 import id.ac.ui.cs.advprog.udehnihreviewrating.model.Review;
 import id.ac.ui.cs.advprog.udehnihreviewrating.repository.ReviewRepository;
@@ -24,12 +26,14 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewFactory reviewFactory;
     private final CourseClient courseClient;
+    private final StudentClient studentClient;
 
     @Autowired
-    public ReviewServiceImpl(ReviewRepository reviewRepository, ReviewFactory reviewFactory, CourseClient courseClient) {
+    public ReviewServiceImpl(ReviewRepository reviewRepository, ReviewFactory reviewFactory, CourseClient courseClient, StudentClient studentClient) {
         this.reviewRepository = reviewRepository;
         this.reviewFactory = reviewFactory;
         this.courseClient = courseClient;
+        this.studentClient = studentClient;
     }
 
     @Override
@@ -141,25 +145,43 @@ public class ReviewServiceImpl implements ReviewService {
     private ReviewResponse convertToResponse(Review review) {
         boolean isAnonymous = "anonymous".equals(review.getStudentId());
 
-        String courseName = "Course Name";
-        String tutorName = "Tutor Name";
-
+        CourseDetailDTO courseDetail;
         try {
-            CourseDetailDTO courseDetail = courseClient.getCourseById(review.getCourseId());
-            if (courseDetail != null) {
-                courseName = courseDetail.getTitle();
-                tutorName = courseDetail.getTutorName();
+            courseDetail = courseClient.getCourseById(review.getCourseId());
+            if (courseDetail == null) {
+                throw new RuntimeException("Course details not found for courseId: " + review.getCourseId());
+            }
+
+            if (courseDetail.getTitle() == null || courseDetail.getTitle().isEmpty()) {
+                throw new RuntimeException("Course title is not defined for courseId: " + review.getCourseId());
+            }
+
+            if (courseDetail.getTutorName() == null || courseDetail.getTutorName().isEmpty()) {
+                throw new RuntimeException("Tutor name is not defined for courseId: " + review.getCourseId());
             }
         } catch (Exception e) {
             log.error("Error fetching course details: {}", e.getMessage());
+            throw new RuntimeException("Failed to retrieve course details: " + e.getMessage(), e);
+        }
+
+        String studentName = "Anonymous";
+        if (!isAnonymous) {
+            try {
+                StudentDTO student = studentClient.getStudentById(review.getStudentId());
+                if (student != null && student.getName() != null && !student.getName().isEmpty()) {
+                    studentName = student.getName();
+                }
+            } catch (Exception e) {
+                log.error("Error fetching student details: {}", e.getMessage());
+            }
         }
 
         return ReviewResponse.builder()
                 .id(review.getId())
                 .courseId(review.getCourseId().toString())
-                .courseName(courseName)
+                .courseName(courseDetail.getTitle())
                 .studentId(isAnonymous ? null : review.getStudentId())
-                .studentName(isAnonymous ? "Anonymous" : "Student Name")
+                .studentName(studentName)
                 .reviewText(review.getReviewText())
                 .rating(review.getRating())
                 .createdAt(review.getCreatedAt())
