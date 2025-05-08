@@ -21,3 +21,6 @@ jwt:
 
 course-service:
   url: http://localhost:8089
+
+auth-service:
+  url: http://localhost:8090
