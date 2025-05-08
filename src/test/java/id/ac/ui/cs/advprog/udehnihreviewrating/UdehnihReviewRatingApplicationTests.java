@@ -8,6 +8,8 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @SpringBootTest
 @TestPropertySource(properties = {
+        "COURSE_SERVICE_URL=http://localhost:8089",
+        "AUTH_SERVICE_URL=http://localhost:8090",
         "spring.cloud.compatibility-verifier.enabled=false"
 })
 class UdehnihReviewRatingApplicationTests {
