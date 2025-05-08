@@ -21,6 +21,9 @@ server:
 course-service:
   url: ${COURSE_SERVICE_URL}
 
+auth-service:
+  url: ${AUTH_SERVICE_URL}
+
 logging:
   level:
     org.springframework.security: ${LOG_SECURITY_LEVEL:INFO}
