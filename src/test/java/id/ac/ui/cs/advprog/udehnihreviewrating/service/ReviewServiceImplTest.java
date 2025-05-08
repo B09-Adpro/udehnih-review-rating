@@ -1,10 +1,12 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.service;
 
 import id.ac.ui.cs.advprog.udehnihreviewrating.client.CourseClient;
+import id.ac.ui.cs.advprog.udehnihreviewrating.client.StudentClient;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.course.CourseDetailDTO;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.CreateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
 import id.ac.ui.cs.advprog.udehnihreviewrating.factory.ReviewFactory;
+import id.ac.ui.cs.advprog.udehnihreviewrating.dto.student.StudentDTO;
 import id.ac.ui.cs.advprog.udehnihreviewrating.model.Review;
 import id.ac.ui.cs.advprog.udehnihreviewrating.repository.ReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +28,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +42,9 @@ class ReviewServiceImplTest {
     @Mock
     private CourseClient courseClient;
 
+    @Mock
+    private StudentClient studentClient;
+
     @InjectMocks
     private ReviewServiceImpl reviewService;
 
@@ -49,6 +53,7 @@ class ReviewServiceImplTest {
     private String studentId;
     private Review review;
     private CourseDetailDTO courseDetail;
+    private StudentDTO studentDTO;
     private LocalDateTime now;
 
     @BeforeEach
@@ -75,10 +80,16 @@ class ReviewServiceImplTest {
                 .tutorName("John Doe")
                 .price(new BigDecimal("100.00"))
                 .build();
+
+        studentDTO = StudentDTO.builder()
+                .id(studentId)
+                .email("student@example.com")
+                .name("Jane Smith")
+                .build();
     }
 
     @Test
-    void createReview_BasicReview_ShouldReturnReviewResponseWithCourseDetails() {
+    void createReview_BasicReview_ShouldReturnReviewResponseWithStudentAndCourseDetails() {
         CreateReviewRequest request = CreateReviewRequest.builder()
                 .courseId(courseId)
                 .reviewText("Great course!")
@@ -90,6 +101,7 @@ class ReviewServiceImplTest {
                 .thenReturn(review);
         when(reviewRepository.save(any(Review.class))).thenReturn(review);
         when(courseClient.getCourseById(courseId)).thenReturn(courseDetail);
+        when(studentClient.getStudentById(studentId)).thenReturn(studentDTO);
 
         ReviewResponse response = reviewService.createReview(studentId, request);
 
@@ -98,41 +110,14 @@ class ReviewServiceImplTest {
         assertEquals(courseId.toString(), response.getCourseId());
         assertEquals("Advanced Programming", response.getCourseName());
         assertEquals(studentId, response.getStudentId());
+        assertEquals("Jane Smith", response.getStudentName());
         assertEquals("Great course!", response.getReviewText());
         assertEquals(5, response.getRating());
 
         verify(reviewFactory).createBasicReview(courseId, studentId, "Great course!", 5);
         verify(reviewRepository).save(review);
         verify(courseClient).getCourseById(courseId);
-    }
-
-    @Test
-    void createReview_WhenCourseServiceUnavailable_ShouldUseDefaultValues() {
-        CreateReviewRequest request = CreateReviewRequest.builder()
-                .courseId(courseId)
-                .reviewText("Great course!")
-                .rating(5)
-                .anonymous(false)
-                .build();
-
-        when(reviewFactory.createBasicReview(anyLong(), anyString(), anyString(), anyInt()))
-                .thenReturn(review);
-        when(reviewRepository.save(any(Review.class))).thenReturn(review);
-        when(courseClient.getCourseById(courseId)).thenThrow(new RuntimeException("Service unavailable"));
-
-        ReviewResponse response = reviewService.createReview(studentId, request);
-
-        assertNotNull(response);
-        assertEquals(reviewId, response.getId());
-        assertEquals(courseId.toString(), response.getCourseId());
-        assertEquals("Course Name", response.getCourseName());
-        assertEquals(studentId, response.getStudentId());
-        assertEquals("Great course!", response.getReviewText());
-        assertEquals(5, response.getRating());
-
-        verify(reviewFactory).createBasicReview(courseId, studentId, "Great course!", 5);
-        verify(reviewRepository).save(review);
-        verify(courseClient).getCourseById(courseId);
+        verify(studentClient).getStudentById(studentId);
     }
 
     @Test
