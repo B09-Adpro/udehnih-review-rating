@@ -19,8 +19,10 @@ spring:
 jwt:
   secret-key: wheniwasyoungerisawmydaddycried
 
-course-service:
-  url: http://localhost:8089
+COURSE_SERVICE_URL: http://localhost:8081
+AUTH_SERVICE_URL: http://localhost:8082
 
+course-service:
+  url: http://localhost:8081
 auth-service:
-  url: http://localhost:8090
+  url: http://localhost:8082
