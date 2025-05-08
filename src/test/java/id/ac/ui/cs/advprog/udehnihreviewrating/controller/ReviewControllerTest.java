@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import id.ac.ui.cs.advprog.udehnihreviewrating.config.MockFeignClientsConfig;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.CreateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.UpdateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
@@ -11,13 +12,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -33,22 +38,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = ReviewController.class)
 @AutoConfigureMockMvc
-@Import(ReviewControllerTest.MockConfig.class)
-@TestPropertySource(properties = "COURSE_SERVICE_URL=localhost:8081")
+@Import(MockFeignClientsConfig.class)
+@ImportAutoConfiguration(exclude = {FeignAutoConfiguration.class})
+@ActiveProfiles("test")
+@TestPropertySource(properties = {
+        "spring.cloud.openfeign.enabled=false",
+        "COURSE_SERVICE_URL=http://localhost:8081",
+        "AUTH_SERVICE_URL=http://localhost:8082"
+})
 class ReviewControllerTest {
 
-    static class MockConfig {
-        @Bean
-        ReviewService reviewService() {
-            return Mockito.mock(ReviewService.class);
-        }
-    }
+    @MockitoBean
+    private ReviewService reviewService;
 
     @Autowired
     MockMvc mockMvc;
-
-    @Autowired
-    ReviewService reviewService;
 
     @Autowired
     ObjectMapper objectMapper;
