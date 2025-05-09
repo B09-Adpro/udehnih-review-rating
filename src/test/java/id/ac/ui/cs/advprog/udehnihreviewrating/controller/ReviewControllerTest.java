@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.udehnihreviewrating.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import id.ac.ui.cs.advprog.udehnihreviewrating.config.MockFeignClientsConfig;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.CreateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.request.UpdateReviewRequest;
 import id.ac.ui.cs.advprog.udehnihreviewrating.dto.response.ReviewResponse;
@@ -10,14 +9,11 @@ import id.ac.ui.cs.advprog.udehnihreviewrating.service.ReviewService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
@@ -38,7 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = ReviewController.class)
 @AutoConfigureMockMvc
-@Import(MockFeignClientsConfig.class)
 @ImportAutoConfiguration(exclude = {FeignAutoConfiguration.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
