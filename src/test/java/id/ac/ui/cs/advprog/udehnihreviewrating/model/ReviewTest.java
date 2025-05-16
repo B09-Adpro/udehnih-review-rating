@@ -13,7 +13,7 @@ class ReviewTest {
     void testReviewBuilder() {
         UUID id = UUID.randomUUID();
         Long courseId = 123L;
-        String studentId = "STUDENT-456";
+        Long studentId = 456L;
         String reviewText = "This is a great course!";
         int rating = 5;
         LocalDateTime createdAt = LocalDateTime.now();
@@ -22,7 +22,7 @@ class ReviewTest {
         Review review = Review.builder()
                 .id(id)
                 .courseId(courseId)
-                .studentId(studentId)
+                .studentId(null)
                 .reviewText(reviewText)
                 .rating(rating)
                 .createdAt(createdAt)
@@ -31,7 +31,7 @@ class ReviewTest {
 
         assertEquals(id, review.getId());
         assertEquals(courseId, review.getCourseId());
-        assertEquals(studentId, review.getStudentId());
+        assertEquals(null, review.getStudentId());
         assertEquals(reviewText, review.getReviewText());
         assertEquals(rating, review.getRating());
         assertEquals(createdAt, review.getCreatedAt());
@@ -55,7 +55,7 @@ class ReviewTest {
     void testReviewAllArgsConstructor() {
         UUID id = UUID.randomUUID();
         Long courseId = 123L;
-        String studentId = "STUDENT-456";
+        Long studentId = 456L;
         String reviewText = "This is a great course!";
         int rating = 5;
         LocalDateTime createdAt = LocalDateTime.now();
@@ -65,7 +65,7 @@ class ReviewTest {
 
         assertEquals(id, review.getId());
         assertEquals(courseId, review.getCourseId());
-        assertEquals(studentId, review.getStudentId());
+        assertEquals(456L, review.getStudentId());
         assertEquals(reviewText, review.getReviewText());
         assertEquals(rating, review.getRating());
         assertEquals(createdAt, review.getCreatedAt());
@@ -77,7 +77,7 @@ class ReviewTest {
         Review review = new Review();
         UUID id = UUID.randomUUID();
         Long courseId = 123L;
-        String studentId = "STUDENT-456";
+        Long studentId = 456L;
         String reviewText = "This is a great course!";
         int rating = 5;
         LocalDateTime createdAt = LocalDateTime.now();
@@ -85,7 +85,7 @@ class ReviewTest {
 
         review.setId(id);
         review.setCourseId(courseId);
-        review.setStudentId(studentId);
+        review.setStudentId(null);
         review.setReviewText(reviewText);
         review.setRating(rating);
         review.setCreatedAt(createdAt);
@@ -93,7 +93,7 @@ class ReviewTest {
 
         assertEquals(id, review.getId());
         assertEquals(courseId, review.getCourseId());
-        assertEquals(studentId, review.getStudentId());
+        assertEquals(null, review.getStudentId());
         assertEquals(reviewText, review.getReviewText());
         assertEquals(rating, review.getRating());
         assertEquals(createdAt, review.getCreatedAt());
@@ -107,7 +107,7 @@ class ReviewTest {
         Review review1 = Review.builder()
                 .id(id)
                 .courseId(123L)
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .reviewText("This is a great course!")
                 .rating(5)
                 .createdAt(LocalDateTime.now())
@@ -117,7 +117,7 @@ class ReviewTest {
         Review review2 = Review.builder()
                 .id(id)
                 .courseId(789L)
-                .studentId("STUDENT-999")
+                .studentId(999L)
                 .reviewText("Different text")
                 .rating(3)
                 .createdAt(LocalDateTime.now().plusDays(1))
@@ -127,7 +127,7 @@ class ReviewTest {
         Review review3 = Review.builder()
                 .id(UUID.randomUUID())
                 .courseId(123L)
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .reviewText("This is a great course!")
                 .rating(5)
                 .createdAt(review1.getCreatedAt())
@@ -152,7 +152,7 @@ class ReviewTest {
         Review review = Review.builder()
                 .id(id)
                 .courseId(123L)
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .reviewText("This is a great course!")
                 .rating(5)
                 .createdAt(now)
@@ -163,7 +163,7 @@ class ReviewTest {
 
         assertTrue(toString.contains(id.toString()));
         assertTrue(toString.contains("123"));
-        assertTrue(toString.contains("STUDENT-456"));
+        assertTrue(toString.contains("456"));
         assertTrue(toString.contains("This is a great course!"));
         assertTrue(toString.contains("5"));
     }

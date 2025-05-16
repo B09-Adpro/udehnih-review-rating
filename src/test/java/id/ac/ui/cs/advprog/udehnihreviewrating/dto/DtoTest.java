@@ -69,7 +69,7 @@ class DtoTest {
         UUID id = UUID.randomUUID();
         String courseId = "123";
         String courseName = "Advanced Programming";
-        String studentId = "STUDENT-456";
+        Long studentId = 456L;
         String studentName = "John Doe";
         String reviewText = "Great course!";
         int rating = 5;
@@ -108,7 +108,7 @@ class DtoTest {
         response2.setId(id2);
         response2.setCourseId("456");
         response2.setCourseName("Data Structures");
-        response2.setStudentId("STUDENT-789");
+        response2.setStudentId(789L);
         response2.setStudentName("Jane Smith");
         response2.setReviewText("Different review");
         response2.setRating(4);
@@ -119,7 +119,7 @@ class DtoTest {
         assertEquals(id2, response2.getId());
         assertEquals("456", response2.getCourseId());
         assertEquals("Data Structures", response2.getCourseName());
-        assertEquals("STUDENT-789", response2.getStudentId());
+        assertEquals(789, response2.getStudentId());
         assertEquals("Jane Smith", response2.getStudentName());
         assertEquals("Different review", response2.getReviewText());
         assertEquals(4, response2.getRating());
@@ -197,7 +197,7 @@ class DtoTest {
                 id,
                 "123",
                 "Advanced Programming",
-                "STUDENT-456",
+                456L,
                 "John Doe",
                 "Great course!",
                 5,
@@ -209,7 +209,7 @@ class DtoTest {
         assertEquals(id, response.getId());
         assertEquals("123", response.getCourseId());
         assertEquals("Advanced Programming", response.getCourseName());
-        assertEquals("STUDENT-456", response.getStudentId());
+        assertEquals(456L, response.getStudentId());
         assertEquals("John Doe", response.getStudentName());
         assertEquals("Great course!", response.getReviewText());
         assertEquals(5, response.getRating());
@@ -257,7 +257,7 @@ class DtoTest {
                 .id(id)
                 .courseId("123")
                 .courseName("Advanced Programming")
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .studentName("John Doe")
                 .reviewText("Great course!")
                 .rating(5)
@@ -271,7 +271,7 @@ class DtoTest {
         assertTrue(toString.contains(id.toString()));
         assertTrue(toString.contains("123"));
         assertTrue(toString.contains("Advanced Programming"));
-        assertTrue(toString.contains("STUDENT-456"));
+        assertTrue(toString.contains("456"));
         assertTrue(toString.contains("John Doe"));
         assertTrue(toString.contains("Great course!"));
         assertTrue(toString.contains("5"));
@@ -342,7 +342,7 @@ class DtoTest {
                 .id(id)
                 .courseId("123")
                 .courseName("Advanced Programming")
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .studentName("John Doe")
                 .reviewText("Great course!")
                 .rating(5)
@@ -355,7 +355,7 @@ class DtoTest {
                 .id(id)
                 .courseId("123")
                 .courseName("Advanced Programming")
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .studentName("John Doe")
                 .reviewText("Great course!")
                 .rating(5)
@@ -368,7 +368,7 @@ class DtoTest {
                 .id(UUID.randomUUID())
                 .courseId("999")
                 .courseName("Different")
-                .studentId("DIFFERENT")
+                .studentId(999L)
                 .studentName("Different")
                 .reviewText("Different")
                 .rating(3)

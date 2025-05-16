@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ReviewService {
-    ReviewResponse createReview(String studentId, CreateReviewRequest request);
+    ReviewResponse createReview(Long studentId, CreateReviewRequest request);
     ReviewResponse getReviewById(UUID reviewId);
     List<ReviewResponse> getReviewsByCourse(Long courseId);
-    List<ReviewResponse> getReviewsByStudent(String studentId);
-    ReviewResponse updateReview(UUID reviewId, String studentId, UpdateReviewRequest request);
-    boolean deleteReview(UUID reviewId, String studentId);
+    List<ReviewResponse> getReviewsByStudent(Long studentId);
+    ReviewResponse updateReview(UUID reviewId, Long studentId, UpdateReviewRequest request);
+    boolean deleteReview(UUID reviewId, Long studentId);
     double getAverageRatingForCourse(Long courseId);
 }

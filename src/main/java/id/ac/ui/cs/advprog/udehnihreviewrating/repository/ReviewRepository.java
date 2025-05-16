@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findByCourseId(Long courseId);
-    List<Review> findByStudentId(String studentId);
-    Review findByCourseIdAndStudentId(Long courseId, String studentId);
+    List<Review> findByStudentId(Long studentId);
+    Review findByCourseIdAndStudentId(Long courseId, Long studentId);
 }

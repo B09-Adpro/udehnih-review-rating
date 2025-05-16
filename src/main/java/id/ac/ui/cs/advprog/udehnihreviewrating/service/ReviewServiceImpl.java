@@ -12,6 +12,7 @@ import id.ac.ui.cs.advprog.udehnihreviewrating.model.Review;
 import id.ac.ui.cs.advprog.udehnihreviewrating.repository.ReviewRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import id.ac.ui.cs.advprog.udehnihreviewrating.exception.CourseNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,9 +38,9 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public ReviewResponse createReview(String studentId, CreateReviewRequest request) {
+    public ReviewResponse createReview(Long studentId, CreateReviewRequest request) {
+        validateCourseExists(request.getCourseId());
         Review review;
-
         if (request.isAnonymous()) {
             review = reviewFactory.createDetailedReview(
                     request.getCourseId(),
@@ -64,7 +65,6 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Review savedReview = reviewRepository.save(review);
-
         return convertToResponse(savedReview);
     }
 
@@ -86,7 +86,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<ReviewResponse> getReviewsByStudent(String studentId) {
+    public List<ReviewResponse> getReviewsByStudent(Long studentId) {
         List<Review> reviews = reviewRepository.findByStudentId(studentId);
 
         return reviews.stream()
@@ -95,29 +95,45 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public ReviewResponse updateReview(UUID reviewId, String studentId, UpdateReviewRequest request) {
+    public ReviewResponse updateReview(UUID reviewId, Long studentId, UpdateReviewRequest request) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found"));
 
-        if (!review.getStudentId().equals(studentId) && !review.getStudentId().equals("anonymous")) {
+        if (!review.getStudentId().equals(studentId) && review.getStudentId() != null) {
             throw new RuntimeException("Unauthorized to update this review");
         }
+
+        validateCourseExists(review.getCourseId());
 
         review.setReviewText(request.getReviewText());
         review.setRating(request.getRating());
         review.setUpdatedAt(LocalDateTime.now());
 
         Review updatedReview = reviewRepository.save(review);
-
         return convertToResponse(updatedReview);
     }
 
+    private void validateCourseExists(Long courseId) {
+        try {
+            var course = courseClient.getCourseById(courseId);
+            if (course == null) {
+                throw new CourseNotFoundException(courseId);
+            }
+        } catch (Exception e) {
+            if (e instanceof CourseNotFoundException) {
+                throw e;
+            }
+            log.error("Error validating course {}: {}", courseId, e.getMessage());
+            throw new RuntimeException("Course not found");
+        }
+    }
+
     @Override
-    public boolean deleteReview(UUID reviewId, String studentId) {
+    public boolean deleteReview(UUID reviewId, Long studentId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found"));
 
-        if (!review.getStudentId().equals(studentId) && !review.getStudentId().equals("anonymous")) {
+        if (!review.getStudentId().equals(studentId) && review.getStudentId() != null) {
             throw new RuntimeException("Unauthorized to delete this review");
         }
 
@@ -143,7 +159,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     private ReviewResponse convertToResponse(Review review) {
-        boolean isAnonymous = "anonymous".equals(review.getStudentId());
+        boolean isAnonymous = review.getStudentId() == null;
 
         CourseDetailDTO courseDetail;
         try {

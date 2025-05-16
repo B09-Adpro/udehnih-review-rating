@@ -44,7 +44,7 @@ class JwtAuthenticationFilterTest {
     private FilterChain filterChain;
 
     private final String secretKey = "dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9ydGVzdGluZ2p3dHRva2Vuczk4NzY1NDMyMTA=";
-    private final String testEmail = "student@example.com";
+    private final Long testId = 456L;
 
     @BeforeEach
     void setUp() {
@@ -65,7 +65,7 @@ class JwtAuthenticationFilterTest {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertNotNull(authentication);
         assertTrue(authentication.getPrincipal() instanceof StudentDetails);
-        assertEquals(testEmail, ((StudentDetails) authentication.getPrincipal()).getEmail());
+        assertEquals(testId, ((StudentDetails) authentication.getPrincipal()).getId());
     }
 
     @Test
@@ -119,9 +119,9 @@ class JwtAuthenticationFilterTest {
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(testEmail)
+                .setSubject(testId.toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hour
+                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

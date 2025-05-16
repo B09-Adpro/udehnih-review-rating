@@ -29,7 +29,7 @@ public class ReviewController {
     public ResponseEntity<ReviewResponse> createReview(
             @AuthenticationPrincipal StudentDetails studentDetails,
             @RequestBody CreateReviewRequest request) {
-        String studentId = studentDetails.getId();
+        Long studentId = studentDetails.getId();
         ReviewResponse response = reviewService.createReview(studentId, request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -47,7 +47,7 @@ public class ReviewController {
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<List<ReviewResponse>> getReviewsByStudent(@PathVariable String studentId) {
+    public ResponseEntity<List<ReviewResponse>> getReviewsByStudent(@PathVariable Long studentId) {
         List<ReviewResponse> responses = reviewService.getReviewsByStudent(studentId);
         return ResponseEntity.ok(responses);
     }
@@ -57,7 +57,7 @@ public class ReviewController {
             @PathVariable UUID reviewId,
             @AuthenticationPrincipal StudentDetails studentDetails,
             @RequestBody UpdateReviewRequest request) {
-        String studentId = studentDetails.getId();
+        Long studentId = studentDetails.getId();
         ReviewResponse response = reviewService.updateReview(reviewId, studentId, request);
         return ResponseEntity.ok(response);
     }
@@ -66,7 +66,7 @@ public class ReviewController {
     public ResponseEntity<Boolean> deleteReview(
             @PathVariable UUID reviewId,
             @AuthenticationPrincipal StudentDetails studentDetails) {
-        String studentId = studentDetails.getId();
+        Long studentId = studentDetails.getId();
         boolean deleted = reviewService.deleteReview(reviewId, studentId);
         return ResponseEntity.ok(deleted);
     }

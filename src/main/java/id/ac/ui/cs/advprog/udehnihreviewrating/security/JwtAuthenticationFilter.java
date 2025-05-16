@@ -20,8 +20,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.security.Key;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -39,26 +40,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = parseJwt(request);
             if (jwt != null && validateJwt(jwt)) {
                 Claims claims = extractAllClaims(jwt);
-                String email = claims.getSubject();
 
-                List<String> roles = claims.get("roles", List.class);
-                List<SimpleGrantedAuthority> authorities = null;
+                String subjectStr = claims.getSubject();
+                Long studentId = Long.parseLong(subjectStr);
 
-                if (roles != null) {
-                    authorities = roles.stream()
-                            .map(role -> "ROLE_" + role)
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList());
-                }
+                String email = claims.get("email", String.class);
+
+                List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+                        new SimpleGrantedAuthority("ROLE_STUDENT")
+                );
 
                 StudentDetails studentDetails = new StudentDetails(
-                        email,
+                        studentId,
                         email,
                         authorities
                 );
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(studentDetails, null, authorities);
+                        new UsernamePasswordAuthenticationToken(studentDetails, jwt, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

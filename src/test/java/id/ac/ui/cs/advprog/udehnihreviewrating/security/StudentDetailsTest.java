@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class StudentDetailsTest {
 
     private StudentDetails studentDetails;
-    private final String testId = "test@example.com";
+    private final Long testId = 456L;
     private final String testEmail = "test@example.com";
     private final List<SimpleGrantedAuthority> authorities =
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_STUDENT"));

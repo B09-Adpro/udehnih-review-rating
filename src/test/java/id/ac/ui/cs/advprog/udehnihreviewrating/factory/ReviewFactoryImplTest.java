@@ -10,13 +10,13 @@ class ReviewFactoryImplTest {
 
     private ReviewFactory reviewFactory;
     private Long courseId;
-    private String studentId;
+    private Long studentId;
 
     @BeforeEach
     void setUp() {
         reviewFactory = new ReviewFactoryImpl();
         courseId = 123L;
-        studentId = "STUDENT-456";
+        studentId = 456L;
     }
 
     @Test
@@ -113,7 +113,7 @@ class ReviewFactoryImplTest {
         assertNotNull(review);
         assertNotNull(review.getId());
         assertEquals(courseId, review.getCourseId());
-        assertEquals("anonymous", review.getStudentId());
+        assertEquals(null, review.getStudentId());
         assertEquals(reviewText, review.getReviewText());
         assertEquals(rating, review.getRating());
         assertNotNull(review.getCreatedAt());

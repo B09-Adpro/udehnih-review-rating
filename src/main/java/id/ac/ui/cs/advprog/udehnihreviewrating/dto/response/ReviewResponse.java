@@ -16,7 +16,7 @@ public class ReviewResponse {
     private UUID id;
     private String courseId;
     private String courseName;
-    private String studentId;
+    private Long studentId;
     private String studentName;
     private String reviewText;
     private int rating;

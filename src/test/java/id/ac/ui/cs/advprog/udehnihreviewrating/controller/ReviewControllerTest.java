@@ -63,7 +63,7 @@ class ReviewControllerTest {
         courseId = 1L;
         now = LocalDateTime.now();
         principal = new StudentDetails(
-                "STUDENT-456",
+                456L,
                 "student@example.com",
                 List.of(new SimpleGrantedAuthority("ROLE_STUDENT"))
         );
@@ -82,7 +82,7 @@ class ReviewControllerTest {
                 .id(reviewId)
                 .courseId(courseId.toString())
                 .courseName("Advanced Programming")
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .studentName("John Doe")
                 .reviewText("Great course!")
                 .rating(5)
@@ -92,7 +92,7 @@ class ReviewControllerTest {
                 .build();
 
         when(reviewService.createReview(
-                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyLong(),
                 ArgumentMatchers.any(CreateReviewRequest.class)))
                 .thenReturn(res);
 
@@ -106,7 +106,7 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.rating").value(5));
 
         verify(reviewService).createReview(
-                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyLong(),
                 ArgumentMatchers.any(CreateReviewRequest.class));
     }
 
@@ -121,7 +121,7 @@ class ReviewControllerTest {
                 .id(reviewId)
                 .courseId(courseId.toString())
                 .courseName("Advanced Programming")
-                .studentId("STUDENT-456")
+                .studentId(456L)
                 .studentName("John Doe")
                 .reviewText("Updated review text")
                 .rating(4)
@@ -132,7 +132,7 @@ class ReviewControllerTest {
 
         when(reviewService.updateReview(
                 ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyLong(),
                 ArgumentMatchers.any(UpdateReviewRequest.class)))
                 .thenReturn(upd);
 
@@ -147,7 +147,7 @@ class ReviewControllerTest {
 
         verify(reviewService).updateReview(
                 ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyLong(),
                 ArgumentMatchers.any(UpdateReviewRequest.class));
     }
 
@@ -155,7 +155,7 @@ class ReviewControllerTest {
     void deleteReview_ShouldReturnTrue() throws Exception {
         when(reviewService.deleteReview(
                 ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.anyString()))
+                ArgumentMatchers.anyLong()))
                 .thenReturn(true);
 
         mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId)
@@ -166,6 +166,6 @@ class ReviewControllerTest {
 
         verify(reviewService).deleteReview(
                 ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.anyString());
+                ArgumentMatchers.anyLong());
     }
 }

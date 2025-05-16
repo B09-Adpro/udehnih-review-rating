@@ -50,7 +50,7 @@ class ReviewServiceImplTest {
 
     private UUID reviewId;
     private Long courseId;
-    private String studentId;
+    private Long studentId;
     private Review review;
     private CourseDetailDTO courseDetail;
     private StudentDTO studentDTO;
@@ -60,13 +60,13 @@ class ReviewServiceImplTest {
     void setUp() {
         reviewId = UUID.randomUUID();
         courseId = 1L;
-        studentId = "STUDENT-456";
+        studentId = 1L;
         now = LocalDateTime.now();
 
         review = Review.builder()
                 .id(reviewId)
                 .courseId(courseId)
-                .studentId(studentId)
+                .studentId(1L)
                 .reviewText("Great course!")
                 .rating(5)
                 .createdAt(now)
@@ -82,7 +82,7 @@ class ReviewServiceImplTest {
                 .build();
 
         studentDTO = StudentDTO.builder()
-                .id(studentId)
+                .studentId(1L)
                 .email("student@example.com")
                 .name("Jane Smith")
                 .build();
@@ -97,7 +97,7 @@ class ReviewServiceImplTest {
                 .anonymous(false)
                 .build();
 
-        when(reviewFactory.createBasicReview(anyLong(), anyString(), anyString(), anyInt()))
+                when(reviewFactory.createBasicReview(anyLong(), anyLong(), anyString(), anyInt()))
                 .thenReturn(review);
         when(reviewRepository.save(any(Review.class))).thenReturn(review);
         when(courseClient.getCourseById(courseId)).thenReturn(courseDetail);
@@ -116,7 +116,7 @@ class ReviewServiceImplTest {
 
         verify(reviewFactory).createBasicReview(courseId, studentId, "Great course!", 5);
         verify(reviewRepository).save(review);
-        verify(courseClient).getCourseById(courseId);
+        verify(courseClient, times(2)).getCourseById(courseId);
         verify(studentClient).getStudentById(studentId);
     }
 
@@ -144,7 +144,7 @@ class ReviewServiceImplTest {
         Review review2 = Review.builder()
                 .id(UUID.randomUUID())
                 .courseId(courseId)
-                .studentId("STUDENT-789")
+                .studentId(789L)
                 .reviewText("Good content")
                 .rating(4)
                 .createdAt(now)
@@ -172,21 +172,21 @@ class ReviewServiceImplTest {
         Review review1 = Review.builder()
                 .id(UUID.randomUUID())
                 .courseId(courseId)
-                .studentId("STUDENT-1")
+                .studentId(1L)
                 .rating(4)
                 .build();
 
         Review review2 = Review.builder()
                 .id(UUID.randomUUID())
                 .courseId(courseId)
-                .studentId("STUDENT-2")
+                .studentId(2L)
                 .rating(5)
                 .build();
 
         Review review3 = Review.builder()
                 .id(UUID.randomUUID())
                 .courseId(courseId)
-                .studentId("STUDENT-3")
+                .studentId(3L)
                 .rating(3)
                 .build();
 

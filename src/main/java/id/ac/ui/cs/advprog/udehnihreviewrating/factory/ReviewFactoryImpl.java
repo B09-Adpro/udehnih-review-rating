@@ -10,7 +10,7 @@ import java.util.UUID;
 public class ReviewFactoryImpl implements ReviewFactory {
 
     @Override
-    public Review createBasicReview(Long courseId, String studentId, String reviewText, int rating) {
+    public Review createBasicReview(Long courseId, Long studentId, String reviewText, int rating) {
         validateRating(rating);
 
         return Review.builder()
@@ -25,7 +25,7 @@ public class ReviewFactoryImpl implements ReviewFactory {
     }
 
     @Override
-    public Review createRatingOnlyReview(Long courseId, String studentId, int rating) {
+    public Review createRatingOnlyReview(Long courseId, Long studentId, int rating) {
         validateRating(rating);
 
         return Review.builder()
@@ -40,10 +40,10 @@ public class ReviewFactoryImpl implements ReviewFactory {
     }
 
     @Override
-    public Review createDetailedReview(Long courseId, String studentId, String reviewText, int rating, boolean isAnonymous) {
+    public Review createDetailedReview(Long courseId, Long studentId, String reviewText, int rating, boolean isAnonymous) {
         validateRating(rating);
 
-        String actualStudentId = isAnonymous ? "anonymous" : studentId;
+        Long actualStudentId = isAnonymous ? null : studentId;
 
         return Review.builder()
                 .id(UUID.randomUUID())
