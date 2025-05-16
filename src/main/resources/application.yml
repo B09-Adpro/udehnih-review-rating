@@ -31,5 +31,5 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_SQL_PARAMS_LEVEL:INFO}
 
 jwt:
-  secret: ${JWT_SECRET_KEY}
+  secret-key: ${JWT_SECRET_KEY}
   expirationMs: ${JWT_EXPIRATION}
