@@ -13,5 +13,4 @@ public class CreateReviewRequest {
     private Long courseId;
     private String reviewText;
     private int rating;
-    private boolean anonymous;
 }
