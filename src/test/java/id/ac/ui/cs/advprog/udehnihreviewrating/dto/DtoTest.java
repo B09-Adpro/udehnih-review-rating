@@ -17,30 +17,25 @@ class DtoTest {
         Long courseId = 123L;
         String reviewText = "Great course!";
         int rating = 5;
-        boolean anonymous = true;
 
         CreateReviewRequest request = CreateReviewRequest.builder()
                 .courseId(courseId)
                 .reviewText(reviewText)
                 .rating(rating)
-                .anonymous(anonymous)
                 .build();
 
         assertEquals(courseId, request.getCourseId());
         assertEquals(reviewText, request.getReviewText());
         assertEquals(rating, request.getRating());
-        assertTrue(request.isAnonymous());
 
         CreateReviewRequest request2 = new CreateReviewRequest();
         request2.setCourseId(456L);
         request2.setReviewText("Different review");
         request2.setRating(4);
-        request2.setAnonymous(false);
 
         assertEquals(456L, request2.getCourseId());
         assertEquals("Different review", request2.getReviewText());
         assertEquals(4, request2.getRating());
-        assertFalse(request2.isAnonymous());
     }
 
     @Test
@@ -75,7 +70,6 @@ class DtoTest {
         int rating = 5;
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime updatedAt = LocalDateTime.now();
-        boolean isAnonymous = false;
 
         ReviewResponse response = ReviewResponse.builder()
                 .id(id)
@@ -87,7 +81,6 @@ class DtoTest {
                 .rating(rating)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
-                .isAnonymous(isAnonymous)
                 .build();
 
         assertEquals(id, response.getId());
@@ -99,7 +92,6 @@ class DtoTest {
         assertEquals(rating, response.getRating());
         assertEquals(createdAt, response.getCreatedAt());
         assertEquals(updatedAt, response.getUpdatedAt());
-        assertFalse(response.isAnonymous());
 
         ReviewResponse response2 = new ReviewResponse();
         UUID id2 = UUID.randomUUID();
@@ -114,18 +106,16 @@ class DtoTest {
         response2.setRating(4);
         response2.setCreatedAt(now);
         response2.setUpdatedAt(now);
-        response2.setAnonymous(true);
 
         assertEquals(id2, response2.getId());
         assertEquals("456", response2.getCourseId());
         assertEquals("Data Structures", response2.getCourseName());
-        assertEquals(789, response2.getStudentId());
+        assertEquals(789L, response2.getStudentId());
         assertEquals("Jane Smith", response2.getStudentName());
         assertEquals("Different review", response2.getReviewText());
         assertEquals(4, response2.getRating());
         assertEquals(now, response2.getCreatedAt());
         assertEquals(now, response2.getUpdatedAt());
-        assertTrue(response2.isAnonymous());
     }
 
     @Test
@@ -135,7 +125,6 @@ class DtoTest {
         assertNull(request.getCourseId());
         assertNull(request.getReviewText());
         assertEquals(0, request.getRating());
-        assertFalse(request.isAnonymous());
     }
 
     @Test
@@ -159,7 +148,6 @@ class DtoTest {
         assertEquals(0, response.getRating());
         assertNull(response.getCreatedAt());
         assertNull(response.getUpdatedAt());
-        assertFalse(response.isAnonymous());
     }
 
     @Test
@@ -167,14 +155,12 @@ class DtoTest {
         CreateReviewRequest request = new CreateReviewRequest(
                 123L,
                 "Great course!",
-                5,
-                true
+                5
         );
 
         assertEquals(123L, request.getCourseId());
         assertEquals("Great course!", request.getReviewText());
         assertEquals(5, request.getRating());
-        assertTrue(request.isAnonymous());
     }
 
     @Test
@@ -202,8 +188,7 @@ class DtoTest {
                 "Great course!",
                 5,
                 now,
-                now,
-                false
+                now
         );
 
         assertEquals(id, response.getId());
@@ -215,68 +200,6 @@ class DtoTest {
         assertEquals(5, response.getRating());
         assertEquals(now, response.getCreatedAt());
         assertEquals(now, response.getUpdatedAt());
-        assertFalse(response.isAnonymous());
-    }
-
-    @Test
-    void createReviewRequest_ToString() {
-        CreateReviewRequest request = CreateReviewRequest.builder()
-                .courseId(123L)
-                .reviewText("Great course!")
-                .rating(5)
-                .anonymous(true)
-                .build();
-
-        String toString = request.toString();
-
-        assertTrue(toString.contains("123"));
-        assertTrue(toString.contains("Great course!"));
-        assertTrue(toString.contains("5"));
-        assertTrue(toString.contains("anonymous=true"));
-    }
-
-    @Test
-    void updateReviewRequest_ToString() {
-        UpdateReviewRequest request = UpdateReviewRequest.builder()
-                .reviewText("Updated text")
-                .rating(4)
-                .build();
-
-        String toString = request.toString();
-
-        assertTrue(toString.contains("Updated text"));
-        assertTrue(toString.contains("4"));
-    }
-
-    @Test
-    void reviewResponse_ToString() {
-        UUID id = UUID.randomUUID();
-        LocalDateTime now = LocalDateTime.now();
-
-        ReviewResponse response = ReviewResponse.builder()
-                .id(id)
-                .courseId("123")
-                .courseName("Advanced Programming")
-                .studentId(456L)
-                .studentName("John Doe")
-                .reviewText("Great course!")
-                .rating(5)
-                .createdAt(now)
-                .updatedAt(now)
-                .isAnonymous(false)
-                .build();
-
-        String toString = response.toString();
-
-        assertTrue(toString.contains(id.toString()));
-        assertTrue(toString.contains("123"));
-        assertTrue(toString.contains("Advanced Programming"));
-        assertTrue(toString.contains("456"));
-        assertTrue(toString.contains("John Doe"));
-        assertTrue(toString.contains("Great course!"));
-        assertTrue(toString.contains("5"));
-        assertTrue(toString.contains(now.toString()));
-        assertTrue(toString.contains("isAnonymous=false"));
     }
 
     @Test
@@ -285,28 +208,23 @@ class DtoTest {
                 .courseId(123L)
                 .reviewText("Great course!")
                 .rating(5)
-                .anonymous(true)
                 .build();
 
         CreateReviewRequest request2 = CreateReviewRequest.builder()
                 .courseId(123L)
                 .reviewText("Great course!")
                 .rating(5)
-                .anonymous(true)
                 .build();
 
         CreateReviewRequest request3 = CreateReviewRequest.builder()
                 .courseId(999L)
                 .reviewText("Different text")
                 .rating(3)
-                .anonymous(false)
                 .build();
 
         assertEquals(request1, request2);
         assertNotEquals(request1, request3);
-
         assertEquals(request1.hashCode(), request2.hashCode());
-        assertNotEquals(request1.hashCode(), request3.hashCode());
     }
 
     @Test
@@ -328,9 +246,7 @@ class DtoTest {
 
         assertEquals(request1, request2);
         assertNotEquals(request1, request3);
-
         assertEquals(request1.hashCode(), request2.hashCode());
-        assertNotEquals(request1.hashCode(), request3.hashCode());
     }
 
     @Test
@@ -348,7 +264,6 @@ class DtoTest {
                 .rating(5)
                 .createdAt(now)
                 .updatedAt(now)
-                .isAnonymous(false)
                 .build();
 
         ReviewResponse response2 = ReviewResponse.builder()
@@ -361,7 +276,6 @@ class DtoTest {
                 .rating(5)
                 .createdAt(now)
                 .updatedAt(now)
-                .isAnonymous(false)
                 .build();
 
         ReviewResponse response3 = ReviewResponse.builder()
@@ -374,13 +288,55 @@ class DtoTest {
                 .rating(3)
                 .createdAt(now.plusDays(1))
                 .updatedAt(now.plusDays(1))
-                .isAnonymous(true)
                 .build();
 
         assertEquals(response1, response2);
         assertNotEquals(response1, response3);
-
         assertEquals(response1.hashCode(), response2.hashCode());
-        assertNotEquals(response1.hashCode(), response3.hashCode());
+    }
+
+    @Test
+    void dtos_ToString() {
+        CreateReviewRequest createRequest = CreateReviewRequest.builder()
+                .courseId(123L)
+                .reviewText("Great course!")
+                .rating(5)
+                .build();
+
+        UpdateReviewRequest updateRequest = UpdateReviewRequest.builder()
+                .reviewText("Updated text")
+                .rating(4)
+                .build();
+
+        UUID id = UUID.randomUUID();
+        LocalDateTime now = LocalDateTime.now();
+        ReviewResponse response = ReviewResponse.builder()
+                .id(id)
+                .courseId("123")
+                .courseName("Advanced Programming")
+                .studentId(456L)
+                .studentName("John Doe")
+                .reviewText("Great course!")
+                .rating(5)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+
+        String createToString = createRequest.toString();
+        String updateToString = updateRequest.toString();
+        String responseToString = response.toString();
+
+        assertTrue(createToString.contains("123"));
+        assertTrue(createToString.contains("Great course!"));
+        assertTrue(createToString.contains("5"));
+
+        assertTrue(updateToString.contains("Updated text"));
+        assertTrue(updateToString.contains("4"));
+
+        assertTrue(responseToString.contains(id.toString()));
+        assertTrue(responseToString.contains("123"));
+        assertTrue(responseToString.contains("Advanced Programming"));
+        assertTrue(responseToString.contains("456"));
+        assertTrue(responseToString.contains("John Doe"));
     }
 }
