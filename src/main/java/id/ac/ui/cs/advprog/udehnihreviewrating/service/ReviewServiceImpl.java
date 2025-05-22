@@ -30,7 +30,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final StudentClient studentClient;
 
     @Autowired
-    public ReviewServiceImpl(ReviewRepository reviewRepository, ReviewFactory reviewFactory, CourseClient courseClient, StudentClient studentClient) {
+    public ReviewServiceImpl(ReviewRepository reviewRepository, ReviewFactory reviewFactory,
+                             CourseClient courseClient, StudentClient studentClient) {
         this.reviewRepository = reviewRepository;
         this.reviewFactory = reviewFactory;
         this.courseClient = courseClient;
@@ -39,47 +40,24 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewResponse createReview(Long studentId, CreateReviewRequest request) {
+        validateStudentExists(studentId);
         validateCourseExists(request.getCourseId());
-        Review review;
-        if (request.isAnonymous()) {
-            review = reviewFactory.createDetailedReview(
-                    request.getCourseId(),
-                    studentId,
-                    request.getReviewText(),
-                    request.getRating(),
-                    true
-            );
-        } else if (request.getReviewText() == null || request.getReviewText().isEmpty()) {
-            review = reviewFactory.createRatingOnlyReview(
-                    request.getCourseId(),
-                    studentId,
-                    request.getRating()
-            );
-        } else {
-            review = reviewFactory.createBasicReview(
-                    request.getCourseId(),
-                    studentId,
-                    request.getReviewText(),
-                    request.getRating()
-            );
-        }
 
+        Review review = createReviewBasedOnType(studentId, request);
         Review savedReview = reviewRepository.save(review);
+
         return convertToResponse(savedReview);
     }
 
     @Override
     public ReviewResponse getReviewById(UUID reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
-
+        Review review = findReviewById(reviewId);
         return convertToResponse(review);
     }
 
     @Override
     public List<ReviewResponse> getReviewsByCourse(Long courseId) {
         List<Review> reviews = reviewRepository.findByCourseId(courseId);
-
         return reviews.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -88,7 +66,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public List<ReviewResponse> getReviewsByStudent(Long studentId) {
         List<Review> reviews = reviewRepository.findByStudentId(studentId);
-
         return reviews.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -96,49 +73,22 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewResponse updateReview(UUID reviewId, Long studentId, UpdateReviewRequest request) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
-
-        if (!review.getStudentId().equals(studentId) && review.getStudentId() != null) {
-            throw new RuntimeException("Unauthorized to update this review");
-        }
-
+        Review review = findReviewById(reviewId);
+        validateReviewOwnership(review, studentId);
         validateCourseExists(review.getCourseId());
 
-        review.setReviewText(request.getReviewText());
-        review.setRating(request.getRating());
-        review.setUpdatedAt(LocalDateTime.now());
-
+        updateReviewFields(review, request);
         Review updatedReview = reviewRepository.save(review);
-        return convertToResponse(updatedReview);
-    }
 
-    private void validateCourseExists(Long courseId) {
-        try {
-            var course = courseClient.getCourseById(courseId);
-            if (course == null) {
-                throw new CourseNotFoundException(courseId);
-            }
-        } catch (Exception e) {
-            if (e instanceof CourseNotFoundException) {
-                throw e;
-            }
-            log.error("Error validating course {}: {}", courseId, e.getMessage());
-            throw new RuntimeException("Course not found");
-        }
+        return convertToResponse(updatedReview);
     }
 
     @Override
     public boolean deleteReview(UUID reviewId, Long studentId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
-
-        if (!review.getStudentId().equals(studentId) && review.getStudentId() != null) {
-            throw new RuntimeException("Unauthorized to delete this review");
-        }
+        Review review = findReviewById(reviewId);
+        validateReviewOwnership(review, studentId);
 
         reviewRepository.deleteById(reviewId);
-
         return true;
     }
 
@@ -150,59 +100,133 @@ public class ReviewServiceImpl implements ReviewService {
             return 0.0;
         }
 
-        int sum = 0;
-        for (Review review : courseReviews) {
-            sum += review.getRating();
-        }
-
-        return (double) sum / courseReviews.size();
+        return courseReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
     }
 
-    private ReviewResponse convertToResponse(Review review) {
-        boolean isAnonymous = review.getStudentId() == null;
+    private Review createReviewBasedOnType(Long studentId, CreateReviewRequest request) {
+        if (isEmptyReviewText(request.getReviewText())) {
+            return reviewFactory.createRatingOnlyReview(
+                    request.getCourseId(),
+                    studentId,
+                    request.getRating()
+            );
+        } else {
+            return reviewFactory.createBasicReview(
+                    request.getCourseId(),
+                    studentId,
+                    request.getReviewText(),
+                    request.getRating()
+            );
+        }
+    }
 
-        CourseDetailDTO courseDetail;
+    private boolean isEmptyReviewText(String reviewText) {
+        return reviewText == null || reviewText.trim().isEmpty();
+    }
+
+    private Review findReviewById(UUID reviewId) {
+        return reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+    }
+
+    private void validateReviewOwnership(Review review, Long studentId) {
+        if (!review.getStudentId().equals(studentId)) {
+            throw new RuntimeException("Unauthorized to modify this review");
+        }
+    }
+
+    private void updateReviewFields(Review review, UpdateReviewRequest request) {
+        review.setReviewText(request.getReviewText());
+        review.setRating(request.getRating());
+        review.setUpdatedAt(LocalDateTime.now());
+    }
+
+    private void validateStudentExists(Long studentId) {
         try {
-            courseDetail = courseClient.getCourseById(review.getCourseId());
-            if (courseDetail == null) {
-                throw new RuntimeException("Course details not found for courseId: " + review.getCourseId());
+            StudentDTO student = studentClient.getStudentById(studentId);
+            if (student == null) {
+                throw new RuntimeException("Student not found or unauthorized");
             }
+        } catch (Exception e) {
+            log.error("Error validating student {}: {}", studentId, e.getMessage());
+            throw new RuntimeException("Student validation failed - unauthorized or not found");
+        }
+    }
 
-            if (courseDetail.getTitle() == null || courseDetail.getTitle().isEmpty()) {
-                throw new RuntimeException("Course title is not defined for courseId: " + review.getCourseId());
+    private void validateCourseExists(Long courseId) {
+        try {
+            CourseDetailDTO course = courseClient.getCourseById(courseId);
+            if (course == null) {
+                throw new CourseNotFoundException(courseId);
             }
+        } catch (CourseNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error validating course {}: {}", courseId, e.getMessage());
+            throw new RuntimeException("Course not found");
+        }
+    }
 
-            if (courseDetail.getTutorName() == null || courseDetail.getTutorName().isEmpty()) {
-                throw new RuntimeException("Tutor name is not defined for courseId: " + review.getCourseId());
-            }
+    private CourseDetailDTO getCourseDetails(Long courseId) {
+        try {
+            CourseDetailDTO courseDetail = courseClient.getCourseById(courseId);
+            validateCourseDetail(courseDetail, courseId);
+            return courseDetail;
         } catch (Exception e) {
             log.error("Error fetching course details: {}", e.getMessage());
             throw new RuntimeException("Failed to retrieve course details: " + e.getMessage(), e);
         }
+    }
 
-        String studentName = "Anonymous";
-        if (!isAnonymous) {
-            try {
-                StudentDTO student = studentClient.getStudentById(review.getStudentId());
-                if (student != null && student.getName() != null && !student.getName().isEmpty()) {
-                    studentName = student.getName();
-                }
-            } catch (Exception e) {
-                log.error("Error fetching student details: {}", e.getMessage());
-            }
+    private void validateCourseDetail(CourseDetailDTO courseDetail, Long courseId) {
+        if (courseDetail == null) {
+            throw new RuntimeException("Course details not found for courseId: " + courseId);
         }
+
+        if (isEmptyString(courseDetail.getTitle())) {
+            throw new RuntimeException("Course title is not defined for courseId: " + courseId);
+        }
+
+        if (isEmptyString(courseDetail.getTutorName())) {
+            throw new RuntimeException("Tutor name is not defined for courseId: " + courseId);
+        }
+    }
+
+    private String getStudentDisplayName(Long studentId) {
+        try {
+            StudentDTO student = studentClient.getStudentById(studentId);
+            if (student != null && !isEmptyString(student.getName())) {
+                return student.getName();
+            }
+
+            throw new RuntimeException("Student data incomplete - name is missing for studentId: " + studentId);
+        } catch (Exception e) {
+            log.error("Error fetching student details for studentId {}: {}", studentId, e.getMessage());
+            throw new RuntimeException("Failed to retrieve student information for studentId: " + studentId, e);
+        }
+    }
+
+    private boolean isEmptyString(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+
+    private ReviewResponse convertToResponse(Review review) {
+        CourseDetailDTO courseDetail = getCourseDetails(review.getCourseId());
+        String studentName = getStudentDisplayName(review.getStudentId());
 
         return ReviewResponse.builder()
                 .id(review.getId())
                 .courseId(review.getCourseId().toString())
                 .courseName(courseDetail.getTitle())
-                .studentId(isAnonymous ? null : review.getStudentId())
+                .studentId(review.getStudentId())
                 .studentName(studentName)
                 .reviewText(review.getReviewText())
                 .rating(review.getRating())
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
-                .isAnonymous(isAnonymous)
                 .build();
     }
 }
