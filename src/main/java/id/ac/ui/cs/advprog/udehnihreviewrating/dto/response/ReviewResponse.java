@@ -22,5 +22,4 @@ public class ReviewResponse {
     private int rating;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private boolean isAnonymous;
 }
