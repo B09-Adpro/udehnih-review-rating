@@ -48,22 +48,37 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          envs: DOCKER_USERNAME,DOCKER_REPO,DB_HOST,DB_PORT,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,JWT_EXPIRATION,JWT_REFRESH_EXPIRATION,COURSE_SERVICE_URL,AUTH_SERVICE_URL
           script: |
             docker system prune -af
-            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+            docker pull $DOCKER_USERNAME/$DOCKER_REPO:latest
             docker stop web_server || true
             docker rm web_server || true
             docker run -d --name=web_server -p 8080:8080 \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
-              -e DB_PORT=${{ secrets.DB_PORT }} \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
-              -e JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} \
-              -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} \
-              -e COURSE_SERVICE_URL=${{ secrets.COURSE_SERVICE_URL }} \
-              -e AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }} \
+              -e DB_HOST="$DB_HOST" \
+              -e DB_PORT="$DB_PORT" \
+              -e DB_NAME="$DB_NAME" \
+              -e DB_USERNAME="$DB_USERNAME" \
+              -e DB_PASSWORD="$DB_PASSWORD" \
+              -e JWT_SECRET_KEY="$JWT_SECRET_KEY" \
+              -e JWT_EXPIRATION="$JWT_EXPIRATION" \
+              -e JWT_REFRESH_EXPIRATION="$JWT_REFRESH_EXPIRATION" \
+              -e COURSE_SERVICE_URL="$COURSE_SERVICE_URL" \
+              -e AUTH_SERVICE_URL="$AUTH_SERVICE_URL" \
               -e SERVER_PORT=8080 \
-              ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+              $DOCKER_USERNAME/$DOCKER_REPO:latest
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          DOCKER_REPO: ${{ secrets.DOCKER_HUB_REPO_NAME }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+          JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
+          COURSE_SERVICE_URL: ${{ secrets.COURSE_SERVICE_URL }}
+          AUTH_SERVICE_URL: ${{ secrets.AUTH_SERVICE_URL }}
