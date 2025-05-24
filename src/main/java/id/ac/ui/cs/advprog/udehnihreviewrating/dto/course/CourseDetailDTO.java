@@ -15,6 +15,4 @@ public class CourseDetailDTO {
     private Long id;
     private String title;
     private String description;
-    private String tutorName;
-    private BigDecimal price;
 }
