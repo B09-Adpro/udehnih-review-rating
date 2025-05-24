@@ -60,7 +60,9 @@ jobs:
 
   deploy:
     needs: build
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
+    if: >
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     runs-on: ubuntu-latest
 
     steps:
@@ -70,14 +72,32 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          port: 22
           script: |
             docker system prune -af
-            
-            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-            
+
+            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} \
+                         -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
-            
+
             docker stop web_server || true
-            docker rm web_server || true
-            
-            docker run -d --name=web_server -p 8080:8080 -e DB_HOST=${{ secrets.DB_HOST }} -e DB_PORT=${{ secrets.DB_PORT }} -e DB_NAME=${{ secrets.DB_NAME }} -e DB_USERNAME=${{ secrets.DB_USERNAME }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} -e JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} -e COURSE_SERVICE_URL=${{ secrets.COURSE_SERVICE_URL }} -e AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }} -e SERVER_PORT=8080 -e LOG_SECURITY_LEVEL=INFO -e LOG_SQL_LEVEL=INFO -e LOG_SQL_PARAMS_LEVEL=INFO -e SHOW_SQL=false ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+            docker rm   web_server || true
+
+            docker run -d --name web_server -p 8080:8080 \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_PORT=${{ secrets.DB_PORT }} \
+              -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
+              -e JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} \
+              -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} \
+              -e COURSE_SERVICE_URL=${{ secrets.COURSE_SERVICE_URL }} \
+              -e AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }} \
+              -e SERVER_PORT=8080 \
+              -e LOG_SECURITY_LEVEL=INFO \
+              -e LOG_SQL_LEVEL=INFO \
+              -e LOG_SQL_PARAMS_LEVEL=INFO \
+              -e SHOW_SQL=false \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
