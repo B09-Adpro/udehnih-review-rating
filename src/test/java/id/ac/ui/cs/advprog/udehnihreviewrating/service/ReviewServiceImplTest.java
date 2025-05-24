@@ -79,8 +79,6 @@ class ReviewServiceImplTest {
                 .id(courseId)
                 .title("Advanced Programming")
                 .description("Learn advanced programming concepts")
-                .tutorName("John Doe")
-                .price(new BigDecimal("100.00"))
                 .build();
 
         studentDTO = StudentDTO.builder()
@@ -369,27 +367,10 @@ class ReviewServiceImplTest {
         CourseDetailDTO courseWithoutTitle = CourseDetailDTO.builder()
                 .id(courseId)
                 .title("")
-                .tutorName("John Doe")
                 .build();
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
         when(courseClient.getCourseById(courseId)).thenReturn(courseWithoutTitle);
-
-        assertThrows(RuntimeException.class, () -> {
-            reviewService.getReviewById(reviewId);
-        });
-    }
-
-    @Test
-    void convertToResponse_CourseWithMissingTutorName_ShouldThrowException() {
-        CourseDetailDTO courseWithoutTutor = CourseDetailDTO.builder()
-                .id(courseId)
-                .title("Advanced Programming")
-                .tutorName("")
-                .build();
-
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        when(courseClient.getCourseById(courseId)).thenReturn(courseWithoutTutor);
 
         assertThrows(RuntimeException.class, () -> {
             reviewService.getReviewById(reviewId);
