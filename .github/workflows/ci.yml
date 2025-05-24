@@ -1,10 +1,10 @@
-name: CI – Build & Test
+name: CI - Build & Test
 
 on:
   push:
-    branches: [ staging, main ]
+    branches: [ staging ]
   pull_request:
-    branches: [ staging, main ]
+    branches: [ staging ]
 
 jobs:
   build:
@@ -42,18 +42,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+          name: auth-service
+          path: build/libs/*.jar

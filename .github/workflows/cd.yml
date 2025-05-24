@@ -1,52 +1,57 @@
-name: CD – Deploy to EC2
+name: CD - Deploy to Production
 
 on:
-  workflow_run:
-    workflows: ["CI – Build & Test"]
-    types:
-      - completed
+  push:
     branches:
       - main
       - staging
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Releasing New Version
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          port: 22
           script: |
             docker system prune -af
-
-            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} \
-                         -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
+            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
-
             docker stop web_server || true
-            docker rm   web_server || true
-
-            docker run -d --name web_server -p 8080:8080 \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
-              -e DB_PORT=${{ secrets.DB_PORT }} \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
-              -e JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} \
-              -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} \
-              -e COURSE_SERVICE_URL=${{ secrets.COURSE_SERVICE_URL }} \
-              -e AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }} \
-              -e SERVER_PORT=8080 \
-              -e LOG_SECURITY_LEVEL=INFO \
-              -e LOG_SQL_LEVEL=INFO \
-              -e LOG_SQL_PARAMS_LEVEL=INFO \
-              -e SHOW_SQL=false \
-              ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+            docker rm web_server || true
+            docker run -d --name=web_server -p 8080:8080 -e DB_HOST=${{ secrets.DB_HOST }} -e DB_PORT=${{ secrets.DB_PORT }} -e DB_NAME=${{ secrets.DB_NAME }} -e DB_USERNAME=${{ secrets.DB_USERNAME }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} -e JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} -e COURSE_SERVICE_URL=${{ secrets.COURSE_SERVICE_URL }} -e AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }} -e SERVER_PORT=8080 ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
