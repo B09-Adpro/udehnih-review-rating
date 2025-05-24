@@ -189,10 +189,6 @@ public class ReviewServiceImpl implements ReviewService {
         if (isEmptyString(courseDetail.getTitle())) {
             throw new RuntimeException("Course title is not defined for courseId: " + courseId);
         }
-
-        if (isEmptyString(courseDetail.getTutorName())) {
-            throw new RuntimeException("Tutor name is not defined for courseId: " + courseId);
-        }
     }
 
     private String getStudentDisplayName(Long studentId) {
@@ -217,10 +213,15 @@ public class ReviewServiceImpl implements ReviewService {
         CourseDetailDTO courseDetail = getCourseDetails(review.getCourseId());
         String studentName = getStudentDisplayName(review.getStudentId());
 
+        String courseName = courseDetail.getTitle();
+        if (isEmptyString(courseName)) {
+            courseName = "Course " + courseDetail.getId();
+        }
+
         return ReviewResponse.builder()
                 .id(review.getId())
                 .courseId(review.getCourseId().toString())
-                .courseName(courseDetail.getTitle())
+                .courseName(courseName)
                 .studentId(review.getStudentId())
                 .studentName(studentName)
                 .reviewText(review.getReviewText())
