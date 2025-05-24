@@ -96,4 +96,6 @@ jobs:
               -e LOG_SQL_LEVEL=INFO \
               -e LOG_SQL_PARAMS_LEVEL=INFO \
               -e SHOW_SQL=false \
+              -e COURSE_SERVICE_URL=${{ secrets.COURSE_SERVICE_URL }} \
+              -e AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }} \
               ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
