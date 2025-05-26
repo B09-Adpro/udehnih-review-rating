@@ -4,7 +4,7 @@ services:
   udehnih-review-rating:
     image: ${DOCKER_USERNAME}/${DOCKER_REPO}:latest
     ports:
-      - "8080:8080"
+      - "8081:5005"
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
