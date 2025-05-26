@@ -50,6 +50,59 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           envs: DOCKER_USERNAME,DOCKER_REPO,DB_HOST,DB_PORT,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,JWT_EXPIRATION,COURSE_SERVICE_URL,AUTH_SERVICE_URL
           script: |
+            cat > docker-compose.prod.yml << 'EOF'
+            version: '3.8'
+            services:
+              udehnih-review-rating:
+                image: ${DOCKER_USERNAME}/${DOCKER_REPO}:latest
+                ports:
+                  - "5005:5005"
+                environment:
+                  - DB_HOST=${DB_HOST}
+                  - DB_PORT=${DB_PORT}
+                  - DB_NAME=${DB_NAME}
+                  - DB_USERNAME=${DB_USERNAME}
+                  - DB_PASSWORD=${DB_PASSWORD}
+                  - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+                  - JWT_EXPIRATION=${JWT_EXPIRATION}
+                  - SERVER_PORT=5005
+                  - COURSE_SERVICE_URL=${COURSE_SERVICE_URL}
+                  - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+                networks:
+                  - monitoring
+              prometheus:
+                image: prom/prometheus:latest
+                ports:
+                  - "9092:9090"
+                volumes:
+                  - ./prometheus.yml:/etc/prometheus/prometheus.yml
+                networks:
+                  - monitoring
+              grafana:
+                image: grafana/grafana:latest
+                ports:
+                  - "3002:3000"
+                environment:
+                  - GF_SECURITY_ADMIN_USER=admin
+                  - GF_SECURITY_ADMIN_PASSWORD=admin
+                volumes:
+                  - grafana_data:/var/lib/grafana
+                networks:
+                  - monitoring
+            networks:
+              monitoring:
+            volumes:
+              grafana_data:
+            EOF
+            cat > prometheus.yml << 'EOF'
+            global:
+              scrape_interval: 15s
+            scrape_configs:
+              - job_name: 'spring-boot-app'
+                static_configs:
+                  - targets: ['udehnih-review-rating:5005']
+                metrics_path: '/actuator/prometheus'
+            EOF
             docker system prune -af
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
             docker pull $DOCKER_USERNAME/$DOCKER_REPO:latest
