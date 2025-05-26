@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  udehnih-review-rating:
+    build: .
+    ports:
+      - "5005:5005"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=udehnih_review_rating
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - JWT_SECRET_KEY=your-secret-key
+      - JWT_EXPIRATION=86400000
+      - SERVER_PORT=5005
+      - COURSE_SERVICE_URL=http://localhost:8081
+      - AUTH_SERVICE_URL=http://localhost:8082
+    depends_on:
+      - postgres
+    networks:
+      - monitoring
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: udehnih_review_rating
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9092:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+
+volumes:
+  postgres_data:
+  grafana_data:

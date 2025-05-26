@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'spring-boot-app'
+    static_configs:
+      - targets: ['udehnih-review-rating:5005']
+    metrics_path: '/actuator/prometheus'

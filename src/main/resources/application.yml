@@ -33,3 +33,16 @@ logging:
 jwt:
   secret-key: ${JWT_SECRET_KEY}
   expirationMs: ${JWT_EXPIRATION}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+    access:
+      default: unrestricted
+  endpoint:
+    prometheus:
+      access: unrestricted
+    metrics:
+      access: unrestricted
