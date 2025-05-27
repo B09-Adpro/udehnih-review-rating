@@ -19,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@AutoConfigureWireMock(port = 0)
+@AutoConfigureWireMock(port = 8081)
 @TestPropertySource(properties = {
-        "course-service.url=http://localhost:${wiremock.server.port}",
+        "course-service.url=http://localhost:8081",
         "auth-service.url=http://localhost:8082"
 })
 class CourseClientTest {
@@ -38,7 +38,7 @@ class CourseClientTest {
     void getCourseById_ReturnsCorrectCourseDetails() {
         Long courseId = 1L;
 
-        stubFor(WireMock.get(urlEqualTo("/api/courses/" + courseId))
+        stubFor(WireMock.get(urlEqualTo("/api/courses/public/" + courseId))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -59,14 +59,14 @@ class CourseClientTest {
         assertEquals("Advanced Programming", result.getTitle());
         assertEquals("Learn advanced programming concepts", result.getDescription());
 
-        verify(1, getRequestedFor(urlEqualTo("/api/courses/" + courseId)));
+        verify(1, getRequestedFor(urlEqualTo("/api/courses/public/" + courseId)));
     }
 
     @Test
     void getCourseById_WithNonExistentId_HandlesNotFoundResponse() {
         Long nonExistentCourseId = 999L;
 
-        stubFor(WireMock.get(urlEqualTo("/api/courses/" + nonExistentCourseId))
+        stubFor(WireMock.get(urlEqualTo("/api/courses/public/" + nonExistentCourseId))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.NOT_FOUND.value())));
 
@@ -77,14 +77,14 @@ class CourseClientTest {
         assertTrue(exception.getMessage().contains("404") ||
                 exception.getMessage().contains("Not Found"));
 
-        verify(1, getRequestedFor(urlEqualTo("/api/courses/" + nonExistentCourseId)));
+        verify(1, getRequestedFor(urlEqualTo("/api/courses/public/" + nonExistentCourseId)));
     }
 
     @Test
     void getCourseById_WithServerError_HandlesErrorResponse() {
         Long courseId = 2L;
 
-        stubFor(WireMock.get(urlEqualTo("/api/courses/" + courseId))
+        stubFor(WireMock.get(urlEqualTo("/api/courses/public/" + courseId))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
 
@@ -95,6 +95,6 @@ class CourseClientTest {
         assertTrue(exception.getMessage().contains("500") ||
                 exception.getMessage().contains("Server Error"));
 
-        verify(1, getRequestedFor(urlEqualTo("/api/courses/" + courseId)));
+        verify(1, getRequestedFor(urlEqualTo("/api/courses/public/" + courseId)));
     }
 }
