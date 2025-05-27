@@ -4,7 +4,7 @@ services:
   udehnih-review-rating:
     image: ${DOCKER_USERNAME}/${DOCKER_REPO}:latest
     ports:
-      - "8081:5005"
+      - "8081:8080"
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
@@ -13,7 +13,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
-      - SERVER_PORT=5005
+      - SERVER_PORT=8080
       - COURSE_SERVICE_URL=${COURSE_SERVICE_URL}
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
     networks:

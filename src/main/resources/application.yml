@@ -16,7 +16,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
-  port: ${SERVER_PORT:5005}
+  port: ${SERVER_PORT:8080}
 
 course-service:
   url: ${COURSE_SERVICE_URL}
