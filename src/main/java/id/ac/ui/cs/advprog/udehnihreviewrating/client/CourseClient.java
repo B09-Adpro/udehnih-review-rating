@@ -13,6 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 )
 public interface CourseClient {
 
-    @GetMapping("/api/courses/{courseId}")
+    @GetMapping("/api/courses/public/{courseId}")
     CourseDetailDTO getCourseById(@PathVariable("courseId") Long courseId);
 }
